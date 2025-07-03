@@ -1,0 +1,8 @@
+- `CVEFIXES.jsonl` has all the java code extracted from CVEFixes dataset. it is a balanced dataset having vulnerable and non-vulnerable code in equal amount.
+- `vul.jsonl` contains all the cleaned vulnerable code along with it vulnerability types from vulnerability_fix_dataset.csv .
+- `non_vul.jsonl` contains all the cleaned non-vulnerable code along with it vulnerability types from vulnerability_fix_dataset.csv .
+- `java_without_p3.jsonl` has a balanced dataset fo vul and non-vul java code from java_k_1_strict_2023_07_03.tar.gz
+- Both `secure_non_vul.jsonl` and `secure_vul.jsonl` are extracted from secure_programming_dpo json dataset
+- `code_vul_java.jsonl` is extract java code from lemon42-ai/Code_Vulnerability_Labeled_Dataset(hugging face)
+- `prepared_vul4j.jsonl` is extracted java code from vul4j dataset
+- `cleaning-code.py` is used to add a final standarization process, all standarized dataset is saved in `standarized` folder
