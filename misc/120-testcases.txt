@@ -1,0 +1,585 @@
+testcases=[{
+        "code": "public class Example1 {\n    public static void main(String[] args) {\n        String query = \"SELECT * FROM users WHERE username = '\" + args[0] + \"' AND password = '\" + args[1] + \"'\";\n        Connection conn = DriverManager.getConnection(\"jdbc:mysql://localhost/test\");\n        Statement stmt = conn.createStatement();\n        ResultSet rs = stmt.executeQuery(query);\n    }\n}",
+        "expected": "VULNERABLE"
+    },
+    {
+        "code": "public class Example2 {\n    public static void main(String[] args) {\n        String username = args[0];\n        String password = args[1];\n        String query = \"SELECT * FROM users WHERE username = ? AND password = ?\";\n        Connection conn = DriverManager.getConnection(\"jdbc:mysql://localhost/test\");\n        PreparedStatement stmt = conn.prepareStatement(query);\n        stmt.setString(1, username);\n        stmt.setString(2, password);\n        ResultSet rs = stmt.executeQuery();\n    }\n}",
+        "expected": "NOT_VULNERABLE"
+    },
+    {
+        "code": "public class Example3 {\n    public void processRequest(HttpServletRequest request) {\n        String value = request.getParameter(\"value\");\n        ScriptEngineManager manager = new ScriptEngineManager();\n        ScriptEngine engine = manager.getEngineByName(\"JavaScript\");\n        engine.eval(value);\n    }\n}",
+        "expected": "VULNERABLE"
+    },
+    {
+        "code": "public class Example4 {\n    public static void main(String[] args) {\n        Runtime rt = Runtime.getRuntime();\n        Process proc = rt.exec(args[0]);\n    }\n}",
+        "expected": "VULNERABLE"
+    },
+    {
+        "code": "public class Example5 {\n    public static void main(String[] args) {\n        if (args.length < 1) return;\n        String command = \"echo \" + sanitize(args[0]);\n        Runtime rt = Runtime.getRuntime();\n        Process proc = rt.exec(command);\n    }\n    \n    private static String sanitize(String input) {\n        return input.replaceAll(\"[^a-zA-Z0-9]\", \"\");\n    }\n}",
+        "expected": "NOT_VULNERABLE"
+    },
+    {
+        "code": "public class Example6 {\n    public void insecureDeserialization(InputStream input) throws Exception {\n        ObjectInputStream ois = new ObjectInputStream(input);\n        Object obj = ois.readObject();\n    }\n}",
+        "expected": "VULNERABLE"
+    },
+    {
+        "code": "public class Example7 {\n    public void secureDeserialization(InputStream input) throws Exception {\n        ObjectInputStream ois = new ObjectInputStream(input) {\n            @Override\n            protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {\n                if (!desc.getName().equals(\"com.example.SafeClass\")) {\n                    throw new InvalidClassException(\"Unauthorized deserialization attempt\", desc.getName());\n                }\n                return super.resolveClass(desc);\n            }\n        };\n        Object obj = ois.readObject();\n    }\n}",
+        "expected": "NOT_VULNERABLE"
+    },
+    {
+        "code": "public class Example8 {\n    public static void main(String[] args) {\n        String password = \"secret\";\n        System.out.println(password);\n    }\n}",
+        "expected": "VULNERABLE"
+    },
+    {
+        "code": "public class Example9 {\n    public static void main(String[] args) {\n        char[] password = {'s', 'e', 'c', 'r', 'e', 't'};\n        System.out.println(\"Password length: \" + password.length);\n    }\n}",
+        "expected": "NOT_VULNERABLE"
+    },
+    {
+        "code": "public class Example10 {\n    public static void main(String[] args) {\n        int[] numbers = {1, 2, 3, 4, 5};\n        for (int i = 0; i <= numbers.length; i++) {\n            System.out.println(numbers[i]);\n        }\n    }\n}",
+        "expected": "VULNERABLE"
+    },
+    {
+        "code": "public class Example11 {\n    public static void main(String[] args) {\n        int[] numbers = {1, 2, 3, 4, 5};\n        for (int i = 0; i < numbers.length; i++) {\n            System.out.println(numbers[i]);\n        }\n    }\n}",
+        "expected": "NOT_VULNERABLE"
+    },
+    {
+        "code": "public class Example12 {\n    public void processXML(String xml) throws Exception {\n        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();\n        DocumentBuilder builder = factory.newDocumentBuilder();\n        Document document = builder.parse(new InputSource(new StringReader(xml)));\n    }\n}",
+        "expected": "VULNERABLE"
+    },
+    {
+        "code": "public class Example13 {\n    public void processXML(String xml) throws Exception {\n        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();\n        factory.setFeature(\"http://apache.org/xml/features/disallow-doctype-decl\", true);\n        factory.setFeature(\"http://xml.org/sax/features/external-general-entities\", false);\n        factory.setFeature(\"http://xml.org/sax/features/external-parameter-entities\", false);\n        DocumentBuilder builder = factory.newDocumentBuilder();\n        Document document = builder.parse(new InputSource(new StringReader(xml)));\n    }\n}",
+        "expected": "NOT_VULNERABLE"
+    },
+    {
+        "code": "public class Example14 {\n    public void processRequest(HttpServletRequest request, HttpServletResponse response) throws Exception {\n        String userInput = request.getParameter(\"input\");\n        response.getWriter().write(userInput);\n    }\n}",
+        "expected": "VULNERABLE",
+        "description": "Directly writing user input to the HTTP response can lead to cross-site scripting (XSS) attacks, as the input is not sanitized or escaped."
+    },
+    {
+        "code": "public class Example15 {\n    public void processRequest(HttpServletRequest request, HttpServletResponse response) throws Exception {\n        String userInput = request.getParameter(\"input\");\n        String escapedInput = StringEscapeUtils.escapeHtml4(userInput);\n        response.getWriter().write(escapedInput);\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Escaping user input with a library like Apache Commons Lang's StringEscapeUtils prevents XSS by ensuring special characters are properly encoded."
+    },
+    {
+        "code": "public class Example16 {\n    public static void main(String[] args) throws Exception {\n        String fileName = \"../config/\" + args[0];\n        File file = new File(fileName);\n        FileInputStream fis = new FileInputStream(file);\n    }\n}",
+        "expected": "VULNERABLE",
+        "description": "Using unsanitized user input in file paths can lead to path traversal attacks, allowing access to unauthorized files."
+    },
+    {
+        "code": "public class Example17 {\n    public static void main(String[] args) throws Exception {\n        String fileName = args[0];\n        if (!fileName.matches(\"[a-zA-Z0-9]+\\\\.txt\")) {\n            throw new IllegalArgumentException(\"Invalid file name\");\n        }\n        File file = new File(\"uploads/\" + fileName);\n        FileInputStream fis = new FileInputStream(file);\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Validating and restricting file names to a safe pattern and prefixing with a controlled directory prevents path traversal."
+    },
+    {
+        "code": "public class Example18 {\n    public static void main(String[] args) throws Exception {\n        SecretKeySpec key = new SecretKeySpec(\"hardcodedkey123\".getBytes(), \"AES\");\n        Cipher cipher = Cipher.getInstance(\"AES/ECB/PKCS5Padding\");\n        cipher.init(Cipher.ENCRYPT_MODE, key);\n    }\n}",
+        "expected": "VULNERABLE",
+        "description": "Hardcoding cryptographic keys and using ECB mode (which is insecure) make the encryption vulnerable to attacks."
+    },
+    {
+        "code": "public class Example19 {\n    public static void main(String[] args) throws Exception {\n        KeyGenerator keyGen = KeyGenerator.getInstance(\"AES\");\n        keyGen.init(256);\n        SecretKey key = keyGen.generateKey();\n        Cipher cipher = Cipher.getInstance(\"AES/GCM/NoPadding\");\n        cipher.init(Cipher.ENCRYPT_MODE, key);\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Using a securely generated key and a secure cipher mode (AES/GCM) ensures proper encryption."
+    },
+    {
+        "code": "public class Example20 {\n    public static void main(String[] args) {\n        Logger logger = Logger.getLogger(\"MyApp\");\n        logger.info(\"User input: \" + args[0]);\n    }\n}",
+        "expected": "VULNERABLE",
+        "description": "Logging unsanitized user input can lead to log injection attacks, where attackers manipulate log output to obscure malicious activity."
+    },
+    {
+        "code": "public class Example21 {\n    public static void main(String[] args) {\n        Logger logger = Logger.getLogger(\"MyApp\");\n        String sanitizedInput = args[0].replaceAll(\"[\\r\\n]\", \"\");\n        logger.info(\"User input: {}\", sanitizedInput);\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Sanitizing user input before logging and using parameterized logging prevents log injection."
+    },
+    {
+        "code": "public class Example22 {\n    public void processRequest(HttpServletRequest request) throws Exception {\n        String token = request.getParameter(\"token\");\n        if (token.equals(\"fixedToken123\")) {\n            // Grant access\n        }\n    }\n}",
+        "expected": "VULNERABLE",
+        "description": "Hardcoding authentication tokens is insecure, as they can be exposed or guessed."
+    },
+    {
+        "code": "public class Example23 {\n    public void processRequest(HttpServletRequest request) throws Exception {\n        String token = request.getParameter(\"token\");\n        String storedToken = System.getenv(\"AUTH_TOKEN\");\n        if (token.equals(storedToken)) {\n            // Grant access\n        }\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Using environment variables to store sensitive tokens avoids hardcoding and improves security."
+    },
+    {
+        "code": "public class Example24 {\n    public void loadClass(String className) throws Exception {\n        Class.forName(className);\n    }\n}",
+        "expected": "VULNERABLE",
+        "description": "Dynamic class loading from user input can lead to remote code execution"
+    },
+    {
+        "code": "public class Example25 {\n    public void loadClass() throws Exception {\n        Class.forName(\"java.lang.String\");\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Static class loading with a known safe class is not vulnerable"
+    },
+    {
+        "code": "public class Example26 {\n    public void processZip(File file) throws Exception {\n        ZipFile zipFile = new ZipFile(file);\n        Enumeration<? extends ZipEntry> entries = zipFile.entries();\n        while (entries.hasMoreElements()) {\n            ZipEntry entry = entries.nextElement();\n            InputStream is = zipFile.getInputStream(entry);\n            // Process entry\n        }\n    }\n}",
+        "expected": "VULNERABLE",
+        "description": "Zip file processing without checking for zip bombs or malicious paths"
+    },
+    {
+        "code": "public class Example27 {\n    private static final long MAX_ZIP_SIZE = 1000000;\n    private static final int MAX_ENTRIES = 100;\n    \n    public void processZip(File file) throws Exception {\n        long totalSize = 0;\n        int entryCount = 0;\n        \n        ZipFile zipFile = new ZipFile(file);\n        Enumeration<? extends ZipEntry> entries = zipFile.entries();\n        \n        while (entries.hasMoreElements()) {\n            if (++entryCount > MAX_ENTRIES) {\n                throw new SecurityException(\"Too many entries in zip file\");\n            }\n            \n            ZipEntry entry = entries.nextElement();\n            totalSize += entry.getSize();\n            \n            if (totalSize > MAX_ZIP_SIZE) {\n                throw new SecurityException(\"Zip file too large\");\n            }\n            \n            if (entry.getName().contains(\"..\") || entry.getName().startsWith(\"/\")) {\n                throw new SecurityException(\"Invalid entry name\");\n            }\n            \n            InputStream is = zipFile.getInputStream(entry);\n            // Process entry\n        }\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Secure zip file processing with size and entry limits and path validation"
+    },
+    {
+        "code": "public class Example28 {\n    public void setCookie(HttpServletResponse response, String value) {\n        Cookie cookie = new Cookie(\"session\", value);\n        cookie.setHttpOnly(false);\n        cookie.setSecure(false);\n        response.addCookie(cookie);\n    }\n}",
+        "expected": "VULNERABLE",
+        "description": "Insecure cookie settings without HttpOnly and Secure flags"
+    },
+    {
+        "code": "public class Example29 {\n    public void setCookie(HttpServletResponse response, String value) {\n        Cookie cookie = new Cookie(\"session\", value);\n        cookie.setHttpOnly(true);\n        cookie.setSecure(true);\n        response.addCookie(cookie);\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Secure cookie settings with HttpOnly and Secure flags"
+    },
+    {
+        "code": "public class Example30 {\n    public String hashPassword(String password) throws Exception {\n        MessageDigest md = MessageDigest.getInstance(\"SHA-1\");\n        return new String(md.digest(password.getBytes()));\n    }\n}",
+        "expected": "VULNERABLE",
+        "description": "Using weak hashing algorithm (SHA-1) for passwords"
+    },
+    {
+        "code": "public class Example31 {\n    public String hashPassword(String password) throws Exception {\n        int iterations = 10000;\n        byte[] salt = new byte[16];\n        new SecureRandom().nextBytes(salt);\n        \n        PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, iterations, 256);\n        SecretKeyFactory skf = SecretKeyFactory.getInstance(\"PBKDF2WithHmacSHA256\");\n        byte[] hash = skf.generateSecret(spec).getEncoded();\n        \n        return iterations + \":\" + Base64.getEncoder().encodeToString(salt) + \":\" + \n               Base64.getEncoder().encodeToString(hash);\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Secure password hashing with PBKDF2, salt, and sufficient iterations"
+    },
+    {
+        "code": "public class Example32 {\n    public void redirect(HttpServletResponse response, String url) throws IOException {\n        response.sendRedirect(url);\n    }\n}",
+        "expected": "VULNERABLE",
+        "description": "Unvalidated redirect which can be used for phishing attacks"
+    },
+    {
+        "code": "public class Example33 {\n    private static final Set<String> ALLOWED_REDIRECTS = Set.of(\n        \"/home\", \"/dashboard\", \"/profile\");\n    \n    public void redirect(HttpServletResponse response, String url) throws IOException {\n        if (ALLOWED_REDIRECTS.contains(url)) {\n            response.sendRedirect(url);\n        } else {\n            throw new SecurityException(\"Invalid redirect URL\");\n        }\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Validated redirect using a whitelist of allowed URLs"
+    },
+    {
+        "code": "public class Example34 {\n    public void processFile(String filename) throws Exception {\n        Runtime.getRuntime().exec(\"chmod 777 \" + filename);\n    }\n}",
+        "expected": "VULNERABLE",
+        "description": "Command injection vulnerability through file permissions change"
+    },
+    {
+        "code": "public class Example35 {\n    public void processFile(File file) throws Exception {\n        file.setReadable(true, false);\n        file.setWritable(true, false);\n        file.setExecutable(true, false);\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Secure file permission changes using Java API"
+    },
+    {
+        "code": "public class Example36 {\n    public void printUserInfo(String username) {\n        System.out.println(\"User info for: \" + username);\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Simple output that doesn't expose sensitive information"
+    },
+    {
+        "code": "public class Example37 {\n    public void printUserInfo(String username, String password) {\n        System.out.println(\"User info - username: \" + username + \" password: \" + password);\n    }\n}",
+        "expected": "VULNERABLE",
+        "description": "Sensitive information exposure through logging"
+    },
+    {
+        "code": "public class Example38 {\n    public void connectToDatabase(String url) {\n        // Assume url is \"jdbc:mysql://localhost/test?allowLoadLocalInfile=true\"\n        Connection conn = DriverManager.getConnection(url);\n    }\n}",
+        "expected": "VULNERABLE",
+        "description": "Dangerous JDBC URL parameters enabling local file access"
+    },
+    {
+        "code": "public class Example39 {\n    public void connectToDatabase() {\n        String url = \"jdbc:mysql://localhost/test?useSSL=true&requireSSL=true\";\n        Connection conn = DriverManager.getConnection(url);\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Secure JDBC connection with SSL enforcement"
+    },
+    {
+        "code": "public class Example40 {\n    public void processExpression(String expr) throws Exception {\n        ScriptEngineManager manager = new ScriptEngineManager();\n        ScriptEngine engine = manager.getEngineByName(\"JavaScript\");\n        engine.eval(\"var result = \" + expr + \";\");\n    }\n}",
+        "expected": "VULNERABLE",
+        "description": "Dynamic JavaScript evaluation from user input"
+    },
+    {
+        "code": "public class Example41 {\n    public void processExpression() throws Exception {\n        ScriptEngineManager manager = new ScriptEngineManager();\n        ScriptEngine engine = manager.getEngineByName(\"JavaScript\");\n        engine.eval(\"var result = 2 + 2;\");\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Static JavaScript evaluation with no user input"
+    },
+    {
+        "code": "public class Example42 {\n    public static void main(String[] args) {\n        Properties props = new Properties();\n        props.put(\"mail.smtp.host\", args[0]);\n        Session session = Session.getInstance(props);\n    }\n}",
+        "expected": "VULNERABLE",
+        "description": "SMTP server configuration from untrusted input"
+    },
+    {
+        "code": "public class Example43 {\n    public static void main(String[] args) {\n        Properties props = new Properties();\n        props.put(\"mail.smtp.host\", \"smtp.example.com\");\n        Session session = Session.getInstance(props);\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Hardcoded SMTP server configuration"
+    },
+
+    {
+        "code": "public class SecureTempFile {\n    public File createTempFile() throws IOException {\n        return File.createTempFile(\"prefix\", \".tmp\", new File(\"/secure/temp/dir\"));\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Secure temporary file creation with explicit directory"
+    },
+    {
+        "code": "public class InsecureTempFile {\n    public File createTempFile() throws IOException {\n        return File.createTempFile(\"prefix\", \".tmp\");\n    }\n}",
+        "expected": "VULNERABLE",
+        "description": "Insecure temporary file creation in default temp directory"
+    },
+    {
+        "code": "public class SecureRandomExample {\n    public int generateToken() {\n        return new SecureRandom().nextInt();\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Proper use of SecureRandom for cryptographic operations"
+    },
+    {
+        "code": "public class RandomExample {\n    public int generateToken() {\n        return new Random().nextInt();\n    }\n}",
+        "expected": "VULNERABLE",
+        "description": "Insecure use of Random for security-sensitive value"
+    },
+    {
+        "code": "public class SecureEquals {\n    public boolean compareSecrets(byte[] a, byte[] b) {\n        return MessageDigest.isEqual(a, b);\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Time-constant secret comparison"
+    },
+    {
+        "code": "public class InsecureEquals {\n    public boolean compareSecrets(String a, String b) {\n        return a.equals(b);\n    }\n}",
+        "expected": "VULNERABLE",
+        "description": "Timing attack vulnerability in string comparison"
+    },
+    {
+        "code": "public class SecureArrayClear {\n    public void clearPassword(char[] password) {\n        Arrays.fill(password, '\\0');\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Proper clearing of sensitive memory"
+    },
+    {
+        "code": "public class InsecureClear {\n    public void clearPassword(String password) {\n        password = null;\n    }\n}",
+        "expected": "VULNERABLE",
+        "description": "Failing to properly clear sensitive data"
+    },
+    {
+        "code": "public class SecureReflection {\n    public Object createInstance() throws Exception {\n        return String.class.getConstructor().newInstance();\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Safe use of reflection with known class"
+    },
+    {
+        "code": "public class InsecureReflection {\n    public Object createInstance(String className) throws Exception {\n        return Class.forName(className).getConstructor().newInstance();\n    }\n}",
+        "expected": "VULNERABLE",
+        "description": "Dangerous reflection from user input"
+    },
+    {
+        "code": "public class SecureJWT {\n    public String parseJWT(String token) {\n        Jwts.parserBuilder()\n            .setSigningKey(Keys.hmacShaKeyFor(secretKey.getBytes()))\n            .build()\n            .parseClaimsJws(token);\n        return \"Valid\";\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Proper JWT validation with signing key"
+    },
+    {
+        "code": "public class InsecureJWT {\n    public String parseJWT(String token) {\n        Jwts.parserBuilder()\n            .build()\n            .parseClaimsJws(token);\n        return \"Valid\";\n    }\n}",
+        "expected": "VULNERABLE",
+        "description": "Missing JWT signature verification"
+    },
+    {
+        "code": "public class SecureContentType {\n    public void downloadFile(HttpServletResponse response, File file) throws IOException {\n        response.setContentType(\"application/octet-stream\");\n        response.setHeader(\"Content-Disposition\", \"attachment; filename=\" + file.getName());\n        // File copy logic\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Secure file download with proper content type"
+    },
+    {
+        "code": "public class InsecureContentType {\n    public void downloadFile(HttpServletResponse response, File file) throws IOException {\n        response.setContentType(request.getParameter(\"contentType\"));\n        // File copy logic\n    }\n}",
+        "expected": "VULNERABLE",
+        "description": "Content type sniffing vulnerability"
+    },
+    {
+        "code": "public class SecureCSP {\n    public void setHeaders(HttpServletResponse response) {\n        response.setHeader(\"Content-Security-Policy\", \"default-src 'self'\");\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Proper Content Security Policy header"
+    },
+    {
+        "code": "public class MissingCSP {\n    public void setHeaders(HttpServletResponse response) {\n        // No CSP header set\n    }\n}",
+        "expected": "VULNERABLE",
+        "description": "Missing CSP header allowing XSS"
+    },
+    {
+        "code": "public class SecureSession {\n    public void configure(HttpSecurity http) throws Exception {\n        http.sessionManagement()\n            .sessionFixation().migrateSession()\n            .maximumSessions(1).maxSessionsPreventsLogin(true);\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Proper session management configuration"
+    },
+    {
+        "code": "public class InsecureSession {\n    public void configure(HttpSecurity http) throws Exception {\n        http.sessionManagement().sessionFixation().none();\n    }\n}",
+        "expected": "VULNERABLE",
+        "description": "Session fixation vulnerability"
+    },
+    {
+        "code": "public class SecureCORS {\n    public void configureCors(HttpSecurity http) throws Exception {\n        http.cors().configurationSource(request -> {\n            CorsConfiguration config = new CorsConfiguration();\n            config.setAllowedOrigins(List.of(\"https://trusted.com\"));\n            return config;\n        });\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Proper CORS configuration with allowed origins"
+    },
+    {
+        "code": "public class InsecureCORS {\n    public void configureCors(HttpSecurity http) throws Exception {\n        http.cors().configurationSource(request -> {\n            CorsConfiguration config = new CorsConfiguration();\n            config.setAllowedOrigins(List.of(\"*\"));\n            return config;\n        });\n    }\n}",
+        "expected": "VULNERABLE",
+        "description": "Overly permissive CORS configuration"
+    },
+    {
+        "code": "public class SecureCSRF {\n    public void configure(HttpSecurity http) throws Exception {\n        http.csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Proper CSRF protection configuration"
+    },
+    {
+        "code": "public class InsecureCSRF {\n    public void configure(HttpSecurity http) throws Exception {\n        http.csrf().disable();\n    }\n}",
+        "expected": "VULNERABLE",
+        "description": "Disabled CSRF protection"
+    },
+    {
+        "code": "public class SecureHeaders {\n    public void setSecurityHeaders(HttpServletResponse response) {\n        response.setHeader(\"X-Content-Type-Options\", \"nosniff\");\n        response.setHeader(\"X-Frame-Options\", \"DENY\");\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Proper security headers configuration"
+    },
+    {
+        "code": "public class MissingSecurityHeaders {\n    public void setHeaders(HttpServletResponse response) {\n        // No security headers set\n    }\n}",
+        "expected": "VULNERABLE",
+        "description": "Missing security headers"
+    },
+    {
+        "code": "public class SecurePasswordEncoder {\n    public String encodePassword(String rawPassword) {\n        return new BCryptPasswordEncoder().encode(rawPassword);\n    }\n}",
+        "expected": "NOT_VULNERABLE",
+        "description": "Proper password hashing with BCrypt"
+    },
+           {
+    "code": "public class InsecureFilePermissions {\n    public void createFile() throws IOException {\n        File file = new File(\"/path/to/file\");\n        file.createNewFile();\n        file.setReadable(true, false);\n        file.setWritable(true, false);\n    }\n}",
+    "expected": "VULNERABLE",
+    "description": "Creating files with world-readable/writable permissions"
+},
+           {
+    "code": "public class SecureFilePermissions {\n    public void createFile() throws IOException {\n        File file = new File(\"/path/to/file\");\n        file.createNewFile();\n        file.setReadable(true, true);\n        file.setWritable(true, true);\n    }\n}",
+    "expected": "NOT_VULNERABLE",
+    "description": "Creating files with restricted permissions"
+},
+           {
+    "code": "public class InsecureReflection {\n    public Object createInstance(String className) throws Exception {\n        return Class.forName(className).newInstance();\n    }\n}",
+    "expected": "VULNERABLE",
+    "description": "Reflection from user input can lead to arbitrary code execution"
+},
+           {
+    "code": "public class RaceCondition {\n    private int counter = 0;\n    \n    public void increment() {\n        counter++;\n    }\n}",
+    "expected": "VULNERABLE",
+    "description": "Non-atomic operation without synchronization can lead to race conditions"
+},
+           {
+    "code": "public class ThreadSafeCounter {\n    private AtomicInteger counter = new AtomicInteger(0);\n    \n    public void increment() {\n        counter.incrementAndGet();\n    }\n}",
+    "expected": "NOT_VULNERABLE",
+    "description": "Thread-safe operation using AtomicInteger"
+},
+           {
+    "code": "public class XXEVulnerable {\n    public void parseXML(InputStream input) throws Exception {\n        SAXParserFactory factory = SAXParserFactory.newInstance();\n        SAXParser parser = factory.newSAXParser();\n        parser.parse(input, new DefaultHandler());\n    }\n}",
+    "expected": "VULNERABLE",
+    "description": "XXE vulnerability in SAX parser without security features"
+},
+           {
+    "code": "public class XXESecureSAX {\n    public void parseXML(InputStream input) throws Exception {\n        SAXParserFactory factory = SAXParserFactory.newInstance();\n        factory.setFeature(\"http://apache.org/xml/features/disallow-doctype-decl\", true);\n        SAXParser parser = factory.newSAXParser();\n        parser.parse(input, new DefaultHandler());\n    }\n}",
+    "expected": "NOT_VULNERABLE",
+    "description": "Secure SAX parser with XXE protection"
+},
+           {
+    "code": "public class ReDoSVulnerable {\n    public boolean validateInput(String input) {\n        return input.matches(\"^(a+)+$\");\n    }\n}",
+    "expected": "VULNERABLE",
+    "description": "Vulnerable to Regular Expression Denial of Service (ReDoS)"
+},
+           {
+    "code": "public class ReDoSSafe {\n    public boolean validateInput(String input) {\n        return input.matches(\"^[a-zA-Z0-9]{1,20}$\");\n    }\n}",
+    "expected": "NOT_VULNERABLE",
+    "description": "Safe regular expression with limited complexity"
+},
+           {
+    "code": "public class MemoryLeak {\n    private static final List<byte[]> LEAK = new ArrayList<>();\n    \n    public void processData(byte[] data) {\n        LEAK.add(data);\n    }\n}",
+    "expected": "VULNERABLE",
+    "description": "Memory leak vulnerability from unbounded collection growth"
+},
+           {
+    "code": "public class SecureMemory {\n    public void processData(byte[] data) {\n        try {\n            // Process data\n        } finally {\n            Arrays.fill(data, (byte) 0);\n        }\n    }\n}",
+    "expected": "NOT_VULNERABLE",
+    "description": "Proper memory cleanup after processing sensitive data"
+},
+           {
+    "code": "public class JNDIVulnerable {\n    public Object lookup(String name) throws Exception {\n        Context ctx = new InitialContext();\n        return ctx.lookup(name);\n    }\n}",
+    "expected": "VULNERABLE",
+    "description": "JNDI injection vulnerability (similar to Log4Shell)"
+},
+           {
+    "code": "public class JNDISafe {\n    public Object lookup() throws Exception {\n        Context ctx = new InitialContext();\n        return ctx.lookup(\"java:comp/env/jdbc/MyDatasource\");\n    }\n}",
+    "expected": "NOT_VULNERABLE",
+    "description": "Safe JNDI lookup with known, trusted resource"
+},
+           {
+    "code": "public class InsecureSSL {\n    public void disableCertificateValidation() throws Exception {\n        SSLContext sslContext = SSLContext.getInstance(\"TLS\");\n        sslContext.init(null, new TrustManager[]{new X509TrustManager() {\n            public void checkClientTrusted(X509Certificate[] chain, String authType) {}\n            public void checkServerTrusted(X509Certificate[] chain, String authType) {}\n            public X509Certificate[] getAcceptedIssuers() { return null; }\n        }}, new SecureRandom());\n        HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());\n    }\n}",
+    "expected": "VULNERABLE",
+    "description": "Disabling SSL certificate validation"
+},
+           {
+    "code": "public class SecureSSL {\n    public SSLSocketFactory createSocketFactory(KeyStore keyStore) throws Exception {\n        TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());\n        tmf.init(keyStore);\n        SSLContext sslContext = SSLContext.getInstance(\"TLS\");\n        sslContext.init(null, tmf.getTrustManagers(), null);\n        return sslContext.getSocketFactory();\n    }\n}",
+    "expected": "NOT_VULNERABLE",
+    "description": "Proper SSL/TLS configuration with certificate validation"
+},
+           {
+    "code": "public class InsecureHeaders {\n    public void setHeaders(HttpServletResponse response) {\n        response.setHeader(\"Server\", \"Apache/2.4.1 (Unix)\");\n    }\n}",
+    "expected": "VULNERABLE",
+    "description": "Information disclosure through server version in headers"
+},
+           {
+    "code": "public class SecureHeaders {\n    public void setHeaders(HttpServletResponse response) {\n        response.setHeader(\"Server\", \"WebServer\");\n    }\n}",
+    "expected": "NOT_VULNERABLE",
+    "description": "Minimal server information in headers"
+},
+           {
+    "code": "public class InsecureComparison {\n    public boolean compareSecrets(String a, String b) {\n        return a.equals(b);\n    }\n}",
+    "expected": "VULNERABLE",
+    "description": "Timing attack vulnerability in string comparison"
+},
+           {
+    "code": "public class SecureComparison {\n    public boolean compareSecrets(byte[] a, byte[] b) {\n        return MessageDigest.isEqual(a, b);\n    }\n}",
+    "expected": "NOT_VULNERABLE",
+    "description": "Time-constant comparison for secrets"
+},
+           
+  {
+    "code": "public class LDAPInjectionVulnerable {\n    public static void main(String[] args) {\n        String userInput = args[0];\n        String ldapSearch = \"(cn=\" + userInput + \")\";\n        // LDAP query execution\n    }\n}",
+    "expected": "VULNERABLE",
+    "description": "LDAP injection vulnerability due to unescaped user input"
+  },
+  {
+    "code": "public class LDAPInjectionSecure {\n    public static void main(String[] args) {\n        String userInput = args[0];\n        String escapedInput = escapeLDAP(userInput);\n        String ldapSearch = \"(cn=\" + escapedInput + \")\";\n        // LDAP query execution\n    }\n\n    private static String escapeLDAP(String input) {\n        // Proper LDAP escaping logic\n        return input.replaceAll(\"([\\\\(\\)\\*])\", \"\\\\\\$1\");\n    }\n}",
+    "expected": "NOT_VULNERABLE",
+    "description": "Secure LDAP query with proper escaping"
+  },
+  {
+    "code": "public class InsecureFileUpload {\n    public void uploadFile(HttpServletRequest request) throws IOException {\n        Part filePart = request.getPart(\"file\");\n        String fileName = filePart.getSubmittedFileName();\n        filePart.write(fileName);  // Dangerous: allows path traversal, arbitrary file types\n    }\n}",
+    "expected": "VULNERABLE",
+    "description": "Insecure file upload vulnerable to path traversal and arbitrary file types"
+  },
+  {
+    "code": "public class SecureFileUpload {\n    private static final Set<String> ALLOWED_EXTENSIONS = Set.of(\"jpg\", \"png\", \"pdf\");\n    private static final long MAX_FILE_SIZE = 10_000_000; // 10MB\n\n    public void uploadFile(HttpServletRequest request) throws IOException {\n        Part filePart = request.getPart(\"file\");\n        String fileName = getFileName(filePart);\n        if (filePart.getSize() > MAX_FILE_SIZE) {\n            throw new SecurityException(\"File too large\");\n        }\n        String extension = getFileExtension(fileName);\n        if (!ALLOWED_EXTENSIONS.contains(extension)) {\n            throw new SecurityException(\"File type not allowed\");\n        }\n        String safeFileName = \"upload_\" + System.currentTimeMillis() + \".\" + extension;\n        filePart.write(safeFileName);\n    }\n\n    private String getFileName(Part part) {\n        String contentDisposition = part.getHeader(\"content-disposition\");\n        String[] tokens = contentDisposition.split(\";\");\n        for (String token : tokens) {\n            if (token.trim().startsWith(\"filename\")) {\n                return token.substring(token.indexOf('=') + 1).trim().replace(\"\\\".\", \"\");\n            }\n        }\n        return \"\";\n    }\n\n    private String getFileExtension(String fileName) {\n        int dotIndex = fileName.lastIndexOf('.');\n        return (dotIndex == -1) ? \"\" : fileName.substring(dotIndex + 1).toLowerCase();\n    }\n}",
+    "expected": "NOT_VULNERABLE",
+    "description": "Secure file upload with size and type validation"
+  },
+  {
+    "code": "public class SSRFVulnerable {\n    public void fetchUrl(String url) throws IOException {\n        URL targetUrl = new URL(url);\n        HttpURLConnection connection = (HttpURLConnection) targetUrl.openConnection();\n        connection.setRequestMethod(\"GET\");\n        // Read response\n    }\n}",
+    "expected": "VULNERABLE",
+    "description": "SSRF vulnerability due to arbitrary URL fetching"
+  },
+  {
+    "code": "public class SSRFSecure {\n    private static final Set<String> ALLOWED_DOMAINS = Set.of(\"api.example.com\", \"internal.example.com\");\n\n    public void fetchUrl(String urlString) throws IOException {\n        URL url = new URL(urlString);\n        String host = url.getHost();\n        boolean isAllowed = ALLOWED_DOMAINS.stream()\n            .anyMatch(domain -> host.equals(domain) || host.endsWith(\".\" + domain));\n\n        if (!isAllowed) {\n            throw new SecurityException(\"Domain not allowed\");\n        }\n\n        HttpURLConnection connection = (HttpURLConnection) url.openConnection();\n        connection.setRequestMethod(\"GET\");\n        // Read response\n    }\n}",
+    "expected": "NOT_VULNERABLE",
+    "description": "Secure URL fetching with domain whitelisting"
+  },
+  {
+    "code": "public class InsecureFilePermissions {\n    public void createFile() throws IOException {\n        File file = new File(\"sensitive.txt\");\n        file.createNewFile();\n        file.setReadable(true, false);  // World-readable\n        file.setWritable(true, false);  // World-writable\n    }\n}",
+    "expected": "VULNERABLE",
+    "description": "Insecure file permissions allowing world-readable/writable"
+  },
+  {
+    "code": "public class SecureFilePermissions {\n    public void createFile() throws IOException {\n        File file = new File(\"sensitive.txt\");\n        file.createNewFile();\n        file.setReadable(true, true);   // Owner-only readable\n        file.setWritable(true, true);   // Owner-only writable\n    }\n}",
+    "expected": "NOT_VULNERABLE",
+    "description": "Secure file permissions with owner-only access"
+  },
+  {
+    "code": "public class HardcodedAPIKey {\n    public void makeAPICall() {\n        String apiKey = \"ABC123XYZ\";  // Hardcoded API key\n        // Make API call with the key\n    }\n}",
+    "expected": "VULNERABLE",
+    "description": "Hardcoded API key vulnerability"
+  },
+  {
+    "code": "public class SecureAPIKey {\n    public void makeAPICall() {\n        String apiKey = System.getenv(\"API_KEY\");  // Get from environment variable\n        if (apiKey == null) {\n            throw new SecurityException(\"API key not configured\");\n        }\n        // Make API call with the key\n    }\n}",
+    "expected": "NOT_VULNERABLE",
+    "description": "Secure API key handling from environment variable"
+  },
+  {
+    "code": "public class IDORVulnerable {\n    public void getUserData(HttpServletRequest request, HttpServletResponse response) throws IOException {\n        String userId = request.getParameter(\"userId\");\n        // Fetch and return user data without checking if current user has access to userId\n    }\n}",
+    "expected": "VULNERABLE",
+    "description": "Insecure Direct Object Reference (IDOR) vulnerability"
+  },
+  {
+    "code": "public class IDORSecure {\n    public void getUserData(HttpServletRequest request, HttpServletResponse response) throws IOException {\n        String currentUserId = request.getSession().getAttribute(\"userId\");\n        String requestedUserId = request.getParameter(\"userId\");\n\n        if (!currentUserId.equals(requestedUserId)) {\n            response.sendError(HttpServletResponse.SC_FORBIDDEN);\n            return;\n        }\n\n        // Fetch and return user data\n    }\n}",
+    "expected": "NOT_VULNERABLE",
+    "description": "Secure direct object reference with proper authorization check"
+  },
+  {
+    "code": "public class MissingInputValidation {\n    public void processInput(String input) {\n        // Process input without validation\n        System.out.println(\"Processed: \" + input);\n    }\n}",
+    "expected": "VULNERABLE",
+    "description": "Missing input validation vulnerability"
+  },
+  {
+    "code": "public class WithInputValidation {\n    public void processInput(String input) {\n        if (input == null || input.length() > 100 || input.matches(\".*[<>&].*\")) {\n            throw new IllegalArgumentException(\"Invalid input\");\n        }\n        // Process input\n        System.out.println(\"Processed: \" + input);\n    }\n}",
+    "expected": "NOT_VULNERABLE",
+    "description": "Proper input validation implementation"
+  },
+  {
+    "code": "public class InsecureDefaultConfig {\n    public void setupServer() {\n        Server server = new Server();\n        server.start();  // Uses insecure defaults (e.g., HTTP instead of HTTPS)\n    }\n}",
+    "expected": "VULNERABLE",
+    "description": "Insecure default configuration vulnerability"
+  },
+  {
+    "code": "public class SecureConfig {\n    public void setupServer() throws Exception {\n        Server server = new Server();\n        SslContextFactory sslContextFactory = new SslContextFactory();\n        sslContextFactory.setKeyStorePath(\"keystore.jks\");\n        sslContextFactory.setKeyStorePassword(\"securepassword\");\n        // Configure TLS properly\n\n        HttpConfiguration httpsConfig = new HttpConfiguration();\n        httpsConfig.addCustomizer(new SecureRequestCustomizer());\n\n        ServerConnector sslConnector = new ServerConnector(\n            server,\n            new SslConnectionFactory(sslContextFactory, \"http/1.1\"),\n            new HttpConnectionFactory(httpsConfig));\n\n        sslConnector.setPort(8443);\n        server.addConnector(sslConnector);\n        server.start();\n    }\n}",
+    "expected": "NOT_VULNERABLE",
+    "description": "Secure server configuration with TLS"
+  },
+  {
+    "code": "public class ImproperErrorHandling {\n    public void processRequest(HttpServletRequest request, HttpServletResponse response) {\n        try {\n            // Process request\n        } catch (Exception e) {\n            response.getWriter().write(\"Error: \" + e.toString());  // Exposes stack trace\n        }\n    }\n}",
+    "expected": "VULNERABLE",
+    "description": "Improper error handling exposing sensitive information"
+  },
+  {
+    "code": "public class ProperErrorHandling {\n    public void processRequest(HttpServletRequest request, HttpServletResponse response) {\n        try {\n            // Process request\n        } catch (Exception e) {\n            logger.error(\"Error processing request\", e);\n            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, \"An error occurred\");\n        }\n    }\n\n    private static final Logger logger = Logger.getLogger(ProperErrorHandling.class.getName());\n}",
+    "expected": "NOT_VULNERABLE",
+    "description": "Proper error handling without exposing sensitive information"
+  },
+  {
+    "code": "public class InsecureCryptoStorage {\n    public void storeData(String sensitiveData) {\n        // Store data without encryption\n        // Or using weak encryption like single DES\n        try {\n            Cipher cipher = Cipher.getInstance(\"DES\");\n            cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(\"12345678\".getBytes(), \"DES\"));\n            byte[] encrypted = cipher.doFinal(sensitiveData.getBytes());\n            // Store encrypted data\n        } catch (Exception e) {\n            e.printStackTrace();\n        }\n    }\n}",
+    "expected": "VULNERABLE",
+    "description": "Insecure cryptographic storage using weak encryption"
+  },
+  {
+    "code": "public class SecureCryptoStorage {\n    private static final String ALGORITHM = \"AES/GCM/NoPadding\";\n    private static final int TAG_LENGTH_BIT = 128;\n    private static final int IV_LENGTH_BYTE = 12;\n    private static final int AES_KEY_SIZE = 256;\n\n    public void storeData(String sensitiveData) {\n        try {\n            SecureRandom secureRandom = new SecureRandom();\n            byte[] iv = new byte[IV_LENGTH_BYTE];\n            secureRandom.nextBytes(iv);\n\n            // In production, key should come from a secure key management system\n            SecretKey key = new SecretKeySpec(new byte[AES_KEY_SIZE / 8], ALGORITHM);\n\n            Cipher cipher = Cipher.getInstance(ALGORITHM);\n            GCMParameterSpec parameterSpec = new GCMParameterSpec(TAG_LENGTH_BIT, iv);\n            cipher.init(Cipher.ENCRYPT_MODE, key, parameterSpec);\n\n            byte[] encrypted = cipher.doFinal(sensitiveData.getBytes(StandardCharsets.UTF_8));\n\n            // Store IV + encrypted data (IV should be stored with the ciphertext)\n            byte[] combined = new byte[iv.length + encrypted.length];\n            System.arraycopy(iv, 0, combined, 0, iv.length);\n            System.arraycopy(encrypted, 0, combined, iv.length, encrypted.length);\n\n            // Store combined data securely\n        } catch (Exception e) {\n            throw new RuntimeException(\"Encryption failed\", e);\n        }\n    }\n}",
+    "expected": "NOT_VULNERABLE",
+    "description": "Secure cryptographic storage using strong encryption"
+  },
+  {
+    "code": "public class BrokenAuthentication {\n    public boolean authenticate(String username, String password) {\n        // Weak password requirements\n        if (password.length() < 4) {\n            return false;\n        }\n\n        // Store password in plaintext or with weak hashing\n        String storedPassword = getStoredPassword(username);\n        return password.equals(storedPassword);\n    }\n}",
+    "expected": "VULNERABLE",
+    "description": "Broken authentication with weak password storage"
+  },
+  {
+    "code": "public class SecureAuthentication {\n    private static final int ITERATIONS = 10000;\n    private static final int KEY_LENGTH = 256;\n    private static final String ALGORITHM = \"PBKDF2WithHmacSHA256\";\n\n    public boolean authenticate(String username, String password) {\n        // Get stored credentials\n        UserCredentials creds = getStoredCredentials(username);\n        if (creds == null) {\n            return false;\n        }\n\n        // Verify password with PBKDF2\n        try {\n            SecretKeyFactory factory = SecretKeyFactory.getInstance(ALGORITHM);\n            PBEKeySpec spec = new PBEKeySpec(password.toCharArray(),\n                                           creds.getSalt(),\n                                           ITERATIONS,\n                                           KEY_LENGTH);\n\n            byte[] hash = factory.generateSecret(spec).getEncoded();\n            byte[] storedHash = Base64.getDecoder().decode(creds.getPasswordHash());\n\n            return MessageDigest.isEqual(hash, storedHash);\n        } catch (Exception e) {\n            // Log error but don't reveal details to user\n            return false;\n        }\n    }\n\n    private UserCredentials getStoredCredentials(String username) {\n        // Retrieve from secure storage\n        return null; // Simplified\n    }\n}",
+    "expected": "NOT_VULNERABLE",
+    "description": "Secure authentication with strong password hashing"
+  },
+  {
+    "code": "@RestController\npublic class InsecureAPIController {\n    @GetMapping(\"/api/internal/users\")\n    public List<User> getAllUsers() {\n        // Returns all users without authentication or authorization\n        return userRepository.findAll();\n    }\n}",
+    "expected": "VULNERABLE",
+    "description": "Insecure API endpoint without authentication/authorization"
+  },
+  {
+    "code": "@RestController\n@RequestMapping(\"/api\")\npublic class SecureAPIController {\n    @GetMapping(\"/users/me\")\n    public User getCurrentUser(@AuthenticationPrincipal User currentUser) {\n        // Returns only the current user's data\n        return currentUser;\n    }\n\n    @GetMapping(\"/admin/users\")\n    @PreAuthorize(\"hasRole('ADMIN')\")\n    public List<User> getAllUsers(@AuthenticationPrincipal User admin) {\n        // Only accessible to admins\n        return userRepository.findAll();\n    }\n}",
+    "expected": "NOT_VULNERABLE",
+    "description": "Secure API endpoints with proper authentication/authorization"
+  },
+  {
+    "code": "public class InsecureReflection {\n    public Object invokeMethod(String className, String methodName, Class<?>[] paramTypes, Object[] args) throws Exception {\n        Class<?> clazz = Class.forName(className);\n        Method method = clazz.getMethod(methodName, paramTypes);\n        return method.invoke(null, args);  // Could execute arbitrary code\n    }\n}",
+    "expected": "VULNERABLE",
+    "description": "Insecure use of reflection allowing arbitrary code execution"
+  },
+  {
+    "code": "public class SecureReflection {\n    private static final Set<String> ALLOWED_CLASSES = Set.of(\n        \"com.example.SafeClass1\",\n        \"com.example.SafeClass2\"\n    );\n\n    public Object invokeSafeMethod(String className, String methodName) throws Exception {\n        if (!ALLOWED_CLASSES.contains(className)) {\n            throw new SecurityException(\"Class not allowed\");\n        }\n\n        Class<?> clazz = Class.forName(className);\n        Method method = clazz.getMethod(methodName);\n        return method.invoke(null);\n    }\n}",
+    "expected": "NOT_VULNERABLE",
+    "description": "Secure use of reflection with class whitelisting"
+  },
+  {
+    "code": "public class InsecureNative {\n    static {\n        System.loadLibrary(\"unsafe\");  // Loading untrusted native library\n    }\n\n    public native void unsafeOperation(String input);  // Trusts input to native code\n}",
+    "expected": "VULNERABLE",
+    "description": "Insecure use of native methods loading untrusted libraries"
+  },
+  {
+    "code": "public class SecureNative {\n    static {\n        // Load library from secure location with verified integrity\n        String libraryPath = System.getProperty(\"secure.library.path\");\n        if (libraryPath != null && libraryPath.matches(\"^[A-Za-z0-9\\/_\\-\\\\\\.]+$\")) {\n            System.load(libraryPath);\n        }\n    }\n\n    public void safeOperation(String input) {\n        // Validate input before passing to native code\n        if (input != null && input.length() < 100 && input.matches(\"^[A-Za-z0-9]+$\")) {\n            nativeSafeOperation(input);\n        }\n    }\n\n    private native void nativeSafeOperation(String safeInput);\n}",
+    "expected": "NOT_VULNERABLE",
+    "description": "More secure use of native methods with input validation"
+  },
+  {
+    "code": "public class InsecureJMX {\n    public void startJMXServer() throws Exception {\n        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();\n        JMXServiceURL url = new JMXServiceURL(\"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi\");\n        JMXConnectorServer cs = JMXConnectorServerFactory.newJMXConnectorServer(url, null, mbs);\n        cs.start();  // No authentication or SSL\n    }\n}",
+    "expected": "VULNERABLE",
+    "description": "Insecure JMX configuration without authentication or SSL"
+  },
+  {
+    "code": "public class SecureJMX {\n    public void startSecureJMXServer() throws Exception {\n        // Set up SSL\n        System.setProperty(\"javax.net.ssl.keyStore\", \"keystore.jks\");\n        System.setProperty(\"javax.net.ssl.keyStorePassword\", \"changeit\");\n        System.setProperty(\"javax.net.ssl.trustStore\", \"truststore.jks\");\n        System.setProperty(\"javax.net.ssl.trustStorePassword\", \"changeit\");\n\n        // Create environment map with credentials\n        Map<String, Object> env = new HashMap<>();\n        env.put(JMXConnectorServer.CREDENTIALS, new Object[]{\"admin\", \"secret\".toCharArray()});\n        env.put(\"com.sun.jndi.rmi.factory.socket\", new SslRMIClientSocketFactory());\n\n        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();\n\n        JMXServiceURL url = new JMXServiceURL(\n            \"service:jmx:rmi:///jndi/rmi://localhost:9999/jmxrmi\");\n\n        JMXConnectorServer cs = JMXConnectorServerFactory.newJMXConnectorServer(url, env, mbs);\n        cs.start();\n\n        // Add authentication\n        PasswordAuthentication auth = new PasswordAuthentication(\"admin\", \"secret\".toCharArray());\n        env.put(\"jmx.remote.credentials\", new Object[]{auth.getUserName(), auth.getPassword()});\n    }\n}",
+    "expected": "NOT_VULNERABLE",
+    "description": "Secure JMX configuration with SSL and authentication"
+  },
+  {
+    "code": "public class InsecureRMI {\n    public void startRMIServer() throws Exception {\n        MyRemoteObject remoteObject = new MyRemoteObject();\n        MyRemoteInterface stub = (MyRemoteInterface) UnicastRemoteObject.exportObject(remoteObject, 0);\n\n        Registry registry = LocateRegistry.createRegistry(1099);\n        registry.bind(\"MyRemoteObject\", stub);  // No security manager or access controls\n    }\n}",
+    "expected": "VULNERABLE",
+    "description": "Insecure RMI configuration without security manager or access controls"
+  },
+  {
+    "code": "public class SecureRMI {\n    public void startSecureRMIServer() throws Exception {\n        // Set security manager\n        if (System.getSecurityManager() == null) {\n            System.setSecurityManager(new SecurityManager());\n        }\n\n        // Configure SSL for RMI\n        System.setProperty(\"java.rmi.server.hostname\", \"localhost\");\n        System.setProperty(\"javax.net.ssl.keyStore\", \"serverKeystore.jks\");\n        System.setProperty(\"javax.net.ssl.keyStorePassword\", \"password\");\n        System.setProperty(\"javax.net.ssl.trustStore\", \"serverTruststore.jks\");\n        System.setProperty(\"javax.net.ssl.trustStorePassword\", \"password\");\n\n        // Create remote object with SSL socket factory\n        MyRemoteObject remoteObject = new MyRemoteObject();\n        MyRemoteInterface stub = (MyRemoteInterface) UnicastRemoteObject.exportObject(\n            remoteObject,\n            0,\n            new SslRMIServerSocketFactory(),\n            new SslRMIClientSocketFactory()\n        );\n\n        // Create registry with SSL\n        Registry registry = LocateRegistry.createRegistry(1099,\n            new SslRMIServerSocketFactory(),\n            new SslRMIClientSocketFactory());\n\n        // Bind with access control\n        AccessControlContext acc = new AccessControlContext(\n            new ProtectionDomain[]{new ProtectionDomain(null, null)});\n        AccessController.doPrivileged((PrivilegedAction<Void>) () -> {\n            try {\n                registry.bind(\"SecureRemoteObject\", stub);\n            } catch (Exception e) {\n                throw new RuntimeException(e);\n            }\n            return null;\n        }, acc);\n    }\n}",
+    "expected": "NOT_VULNERABLE",
+    "description": "Secure RMI configuration with SSL and access controls"
+  }
+]
