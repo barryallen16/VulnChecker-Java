@@ -1,0 +1,723 @@
+{
+  "summary": {
+    "total_test_cases": 102,
+    "correct_predictions": 79,
+    "accuracy": 77.45098039215686
+  },
+  "detailed_results": [
+    {
+      "test_case": 1,
+      "expected": "VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": false,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 2,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": false,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Path Traversal"
+    },
+    {
+      "test_case": 3,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": false,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Insecure Direct Object Reference"
+    },
+    {
+      "test_case": 4,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: CWE-327"
+    },
+    {
+      "test_case": 5,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Improper Content Handling"
+    },
+    {
+      "test_case": 6,
+      "expected": "VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": false,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 7,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Command Injection"
+    },
+    {
+      "test_case": 8,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 9,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: SQL Injection"
+    },
+    {
+      "test_case": 10,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Insecure Hashing"
+    },
+    {
+      "test_case": 11,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 12,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Cross-Site Scripting (XSS)"
+    },
+    {
+      "test_case": 13,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 14,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Path Traversal"
+    },
+    {
+      "test_case": 15,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 16,
+      "expected": "VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": false,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 17,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 18,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 19,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Improper Content Handling"
+    },
+    {
+      "test_case": 20,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Information Disclosure"
+    },
+    {
+      "test_case": 21,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": false,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')"
+    },
+    {
+      "test_case": 22,
+      "expected": "VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": false,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 23,
+      "expected": "VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": false,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 24,
+      "expected": "VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": false,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 25,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 26,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 27,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Path Traversal"
+    },
+    {
+      "test_case": 28,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 29,
+      "expected": "VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": false,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 30,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Insecure Direct Object Reference"
+    },
+    {
+      "test_case": 31,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Insecure Hashing Algorithm"
+    },
+    {
+      "test_case": 32,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 33,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Command Injection"
+    },
+    {
+      "test_case": 34,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Command Injection"
+    },
+    {
+      "test_case": 35,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": false,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Command Injection"
+    },
+    {
+      "test_case": 36,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: SQL Injection"
+    },
+    {
+      "test_case": 37,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 38,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Improper Content Handling"
+    },
+    {
+      "test_case": 39,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 40,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: CWE-20"
+    },
+    {
+      "test_case": 41,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 42,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 43,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 44,
+      "expected": "VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": false,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 45,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Buffer Overflow"
+    },
+    {
+      "test_case": 46,
+      "expected": "VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": false,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 47,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Weak Cryptographic Hash"
+    },
+    {
+      "test_case": 48,
+      "expected": "VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": false,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 49,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Cross-Site Request Forgery (CSRF)"
+    },
+    {
+      "test_case": 50,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Cross-Site Scripting (XSS)"
+    },
+    {
+      "test_case": 51,
+      "expected": "VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": false,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 52,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Path Traversal"
+    },
+    {
+      "test_case": 53,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: XML External Entity (XXE)"
+    },
+    {
+      "test_case": 54,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: SQL Injection"
+    },
+    {
+      "test_case": 55,
+      "expected": "VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": false,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 56,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Path Traversal"
+    },
+    {
+      "test_case": 57,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Buffer Overflow"
+    },
+    {
+      "test_case": 58,
+      "expected": "VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": false,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 59,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Buffer Overflow"
+    },
+    {
+      "test_case": 60,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Path Traversal"
+    },
+    {
+      "test_case": 61,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: CWE-113: Improper Neutralization of CRLF Sequences ('CRLF Injection')"
+    },
+    {
+      "test_case": 62,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Improper Certificate Validation"
+    },
+    {
+      "test_case": 63,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Path Traversal"
+    },
+    {
+      "test_case": 64,
+      "expected": "VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": false,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 65,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": false,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Buffer Overflow"
+    },
+    {
+      "test_case": 66,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 67,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": false,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Insecure Code"
+    },
+    {
+      "test_case": 68,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 69,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 70,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 71,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": false,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: CWE-117: Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')"
+    },
+    {
+      "test_case": 72,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 73,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 74,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 75,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 76,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 77,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 78,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 79,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 80,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 81,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 82,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 83,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 84,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": false,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Improper Error Handling"
+    },
+    {
+      "test_case": 85,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Security Misconfiguration"
+    },
+    {
+      "test_case": 86,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 87,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: SQL Injection"
+    },
+    {
+      "test_case": 88,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 89,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Command Injection"
+    },
+    {
+      "test_case": 90,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Command Injection"
+    },
+    {
+      "test_case": 91,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Cross-Site Scripting (XSS)"
+    },
+    {
+      "test_case": 92,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 93,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Deserialization of Untrusted Data"
+    },
+    {
+      "test_case": 94,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 95,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Path Traversal"
+    },
+    {
+      "test_case": 96,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 97,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Insecure Encryption"
+    },
+    {
+      "test_case": 98,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 99,
+      "expected": "VULNERABLE",
+      "predicted": "VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: VULNERABLE. Vulnerability Type: Path Traversal"
+    },
+    {
+      "test_case": 100,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 101,
+      "expected": "VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": false,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    },
+    {
+      "test_case": 102,
+      "expected": "NOT_VULNERABLE",
+      "predicted": "NOT_VULNERABLE",
+      "correct": true,
+      "model_output": "assistant\nClassification: NOT_VULNERABLE. Vulnerability Type: safe"
+    }
+  ]
+}
