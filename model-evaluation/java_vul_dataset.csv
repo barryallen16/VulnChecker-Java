@@ -1,0 +1,4365 @@
+code,expected
+"    import java.sql.*;
+    public class SecureCode {
+    public static void main(String[] args) {
+    String userInput = ""'; DROP TABLE users; --""; // Malicious input
+    try {
+    Connection conn = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    // Using prepared statement to prevent SQL Injection
+    String query = ""SELECT * FROM users WHERE username = ?"";
+    PreparedStatement pstmt = conn.prepareStatement(query);
+    pstmt.setString(1, userInput);
+    ResultSet rs = pstmt.executeQuery();
+    while (rs.next()) {
+    System.out.println(rs.getString(""username""));
+    }
+    conn.close();
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    public class CommandInjectionVulnerability {
+    public static void main(String[] args) {
+    try {
+    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    System.out.print(""Enter a command to execute: "");
+    String command = reader.readLine();
+    Runtime runtime = Runtime.getRuntime();
+    Process process = runtime.exec(""ping "" + command);
+    BufferedReader inputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String line;
+    while ((line = inputReader.readLine()) != null) {
+    System.out.println(line);
+    }
+    } catch (IOException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Command Injection
+"    import java.util.Scanner;
+    public class BufferOverflowVulnerability {
+    public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print(""Enter your name: "");
+    String name = scanner.nextLine();
+    // Vulnerable code: Improper handling of user input can lead to buffer overflow
+    char[] buffer = new char[10];
+    name.getChars(0, name.length(), buffer, 0);
+    System.out.println(""Hello, "" + new String(buffer));
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Buffer Overflow
+"    import java.sql.*;
+    public class SecureSQLQuery {
+    public static void main(String[] args) {
+    String userInput = ""'; DROP TABLE users; --""; // Malicious input
+    try {
+    Connection connection = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    String query = ""SELECT * FROM users WHERE username = ?"";
+    PreparedStatement statement = connection.prepareStatement(query);
+    statement.setString(1, userInput);
+    ResultSet resultSet = statement.executeQuery();
+    while (resultSet.next()) {
+    System.out.println(""Username: "" + resultSet.getString(""username""));
+    }
+    connection.close();
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"To fix the Command Injection vulnerability in the provided Java code snippet, you should sanitize and validate user input before constructing the command to execute. Here is an improved version of the code with proper security measures:
+
+```java
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class SecureCommandExecution {
+
+    public static void main(String[] args) {
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            System.out.print(""Enter a command to execute: "");
+            String userInput = reader.readLine();
+
+            // Sanitize and validate user input
+            if (!isValidInput(userInput)) {
+                System.out.println(""Invalid input. Please try again."");
+                return;
+            }
+
+            String command = ""ping "" + userInput; // Safe command construction
+
+            Process process = Runtime.getRuntime().exec(command);
+            BufferedReader inputStreamReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+            String line;
+            while ((line = inputStreamReader.readLine()) != null) {
+                System.out.println(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static boolean isValidInput(String userInput) {
+        // Implement your validation logic here
+        // Example: Check if userInput contains only allowed characters",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.IOException;
+    import java.io.PrintWriter;
+    import javax.servlet.http.HttpServlet;
+    import javax.servlet.http.HttpServletRequest;
+    import javax.servlet.http.HttpServletResponse;
+    import org.owasp.encoder.Encode;
+    public class SecureServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    String userInput = request.getParameter(""input"");
+    PrintWriter out = response.getWriter();
+    out.println(""<html>"");
+    out.println(""<body>"");
+    out.println(""<h1>User Input:</h1>"");
+    out.println(Encode.forHtml(userInput)); // Sanitize user input before printing
+    out.println(""</body>"");
+    out.println(""</html>"");
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.IOException;
+    import java.io.PrintWriter;
+    import javax.servlet.http.HttpServlet;
+    import javax.servlet.http.HttpServletRequest;
+    import javax.servlet.http.HttpServletResponse;
+    public class XSSVulnerableServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    String userInput = request.getParameter(""input"");
+    // Improper handling of user input, directly outputting it to the response
+    PrintWriter out = response.getWriter();
+    out.println(""<html>"");
+    out.println(""<head><title>XSS Vulnerable Page</title></head>"");
+    out.println(""<body>"");
+    out.println(""<h1>User Input: "" + userInput + ""</h1>""); // Vulnerable point
+    out.println(""</body>"");
+    out.println(""</html>"");
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Cross-Site Scripting (XSS)
+"To fix the Path Traversal vulnerability in the provided Java code, you should not directly concatenate user input to the file path. Instead, you should validate and sanitize the user input to prevent any malicious attempts to access files outside the intended directory.
+
+Here's an updated version of the code with proper security measures:
+
+```java
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Scanner;
+
+public class SecurePathTraversal {
+    private static final String BASE_PATH = ""C:/files/"";
+
+    public static void main(String[] args) throws IOException {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print(""Enter a file name: "");
+        String fileName = scanner.nextLine();
+
+        // Validate user input to prevent path traversal
+        if (!isValidFileName(fileName)) {
+            System.out.println(""Invalid file name."");
+            return;
+        }
+
+        File file = new File(BASE_PATH + fileName);
+
+        if (file.exists()) {
+            byte[] fileContent = Files.readAllBytes(file.toPath());
+            System.out.println(""File content: "" + new String(fileContent));
+        } else {
+            System.out.println(""File not found."");
+        }
+
+        scanner.close();
+    }
+
+    private static boolean isValidFileName(String",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"To fix the Command Injection vulnerability in the provided Java code snippet, you can implement proper security measures by validating and sanitizing user input before executing any external commands. Here is an improved version of the code snippet with security measures:
+
+```java
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class SecureCommandExecution {
+    public static void main(String[] args) {
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+
+            System.out.print(""Enter a command to execute: "");
+            String command = reader.readLine().trim(); // Trim leading and trailing whitespaces
+
+            // Validate the command input to prevent command injection
+            if (!isValidCommand(command)) {
+                System.out.println(""Invalid command input. Aborting execution."");
+                return;
+            }
+
+            Process process = Runtime.getRuntime().exec(new String[] { ""/bin/sh"", ""-c"", command });
+
+            BufferedReader outputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+
+            while ((line = outputReader.readLine()) != null) {
+                System.out.println(line);
+            }
+
+        } catch (IOException e) {
+            System.err.println(""Error executing command: "" + e.getMessage());
+        }
+    }
+
+    private static boolean isValidCommand(String",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.*;
+    import javax.servlet.*;
+    import javax.servlet.http.*;
+    public class VulnerableServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    String userInput = request.getParameter(""input"");
+    response.setContentType(""text/html"");
+    PrintWriter out = response.getWriter();
+    out.println(""<html>"");
+    out.println(""<head><title>XSS Vulnerability Example</title></head>"");
+    out.println(""<body>"");
+    // Displaying user input without proper sanitization
+    out.println(""<h1>User Input: "" + userInput + ""</h1>"");
+    out.println(""</body>"");
+    out.println(""</html>"");
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Cross-Site Scripting (XSS)
+"    import java.io.*;
+    public class XSSVulnerableCode {
+    public static void main(String[] args) throws IOException {
+    BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+    System.out.print(""Enter your name: "");
+    String name = br.readLine();
+    System.out.println(""<div>Welcome, "" + name + ""!</div>"");
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Cross-Site Scripting (XSS)
+"    import org.owasp.encoder.Encode;
+    import java.io.IOException;
+    import javax.servlet.http.HttpServlet;
+    import javax.servlet.http.HttpServletRequest;
+    import javax.servlet.http.HttpServletResponse;
+    public class XSSSafeServlet extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    String userInput = request.getParameter(""input"");
+    String safeOutput = ""<p>User input: "" + Encode.forHtml(userInput) + ""</p>"";
+    response.getWriter().write(safeOutput);
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.*;
+    import java.util.Scanner;
+    public class SafeCommandExecutionDemo {
+    public static void main(String[] args) {
+    try {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print(""Enter a command to execute: "");
+    String command = scanner.nextLine();
+    // Sanitize and validate user input
+    if (!command.matches(""[a-zA-Z0-9]+"")) {
+    System.out.println(""Invalid command"");
+    return;
+    }
+    ProcessBuilder processBuilder = new ProcessBuilder(""ping"", command);
+    Process process = processBuilder.start();
+    BufferedReader inputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String inputLine;
+    while ((inputLine = inputReader.readLine()) != null) {
+    System.out.println(inputLine);
+    }
+    } catch (IOException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.util.Scanner;
+    public class BufferOverflowExample {
+    public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print(""Enter a string: "");
+    String userInput = scanner.nextLine();
+    char[] buffer = new char[10];
+    userInput.getChars(0, userInput.length(), buffer, 0);
+    // Vulnerability: No boundary check on the buffer size
+    System.out.println(""Buffer contents: "" + new String(buffer));
+    scanner.close();
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Buffer Overflow
+"private void init() {
+        authMap = new HashMap<Pair<String, String>, String>();
+
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setNamespaceAware(true);
+        try {
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            Document doc = db.parse(getClass().getResource(""/"" + authorizations).openStream());
+            doc.getDocumentElement().normalize();
+
+            Node authNode = null;
+            NodeList root = doc.getChildNodes();
+            for (int i = 0; i < root.getLength() && authNode == null; i++) {
+                if (""auth"".equals(root.item(i).getNodeName())) {
+                    authNode = root.item(i);
+                }
+            }
+            if (authNode == null) {
+                throw new IllegalArgumentException(""Could not find root <auth> node"");
+            }
+
+            NodeList pages = authNode.getChildNodes();
+            for (int i = 0; i < pages.getLength(); i++) {
+                if (""page"".equals(pages.item(i).getNodeName())) {
+                    String page = pages.item(i).getAttributes().getNamedItem(""id"").getTextContent();
+
+                    NodeList actions = pages.item(i).getChildNodes();
+                    for (int j = 0; j < actions.getLength(); j++) {
+                        if (""action"".equals(actions.item(j).getNodeName())) {
+                            String action = actions.item(j).getAttributes().getNamedItem(""id"").getTextContent();
+
+                            NodeList entitlements = actions.item(j).getChildNodes();
+                            for (int k = 0; k < entitlements.getLength(); k++) {
+                                if (""entitlement"".equals(entitlements.item(k).getNodeName())) {
+                                    String entitlement = entitlements.item(k).getTextContent();
+                                    authMap.put(new ImmutablePair<String, String>(page, action), entitlement);
+                                }
+                            }
+                        }
+                    ",Classification: VULNERABLE. Vulnerability Type: CWE-20
+"    import java.util.Scanner;
+    public class SecureBufferExample {
+    public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print(""Enter a string: "");
+    String userInput = scanner.nextLine();
+    // Allocate memory dynamically based on user input length
+    char[] buffer = new char[userInput.length()];
+    // Copy user input into the buffer
+    for (int i = 0; i < userInput.length(); i++) {
+    buffer[i] = userInput.charAt(i);
+    }
+    System.out.println(""Buffer content: "" + new String(buffer));
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"```java
+import java.sql.*;
+
+public class Main {
+    public static void main(String[] args) {
+        String username = ""test"";
+        String password = ""test"";
+        try {
+            Class.forName(""com.mysql.jdbc.Driver"");
+            Connection con = DriverManager.getConnection(""jdbc:mysql://localhost:3306/testDB"", username, password);
+            
+            String input = ""1' OR '1'='1""; // Vulnerable input
+            PreparedStatement statement = con.prepareStatement(""SELECT * FROM users WHERE id = '"" + input + ""'"");
+            ResultSet resultSet = statement.executeQuery();
+            
+            while (resultSet.next()) {
+                System.out.println(resultSet.getString(""username""));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();archar
+        }
+    }
+}
+```",Classification: VULNERABLE. Vulnerability Type: Improper Neutralization of Special Elements used in an SQL Command (“SQL Injection”)
+"protected XStream createXStream(ClassResolver resolver, ClassLoader classLoader) {
+        if (xstreamDriver != null) {
+            xstream = new XStream(xstreamDriver);
+        } else {
+            xstream = new XStream();
+        }
+
+        if (mode != null) {
+            xstream.setMode(getModeFromString(mode));
+        }
+
+        ClassLoader xstreamLoader = xstream.getClassLoader();
+        if (classLoader != null && xstreamLoader instanceof CompositeClassLoader) {
+            ((CompositeClassLoader) xstreamLoader).add(classLoader);
+        }
+
+        try {
+            if (this.implicitCollections != null) {
+                for (Entry<String, String[]> entry : this.implicitCollections.entrySet()) {
+                    for (String name : entry.getValue()) {
+                        xstream.addImplicitCollection(resolver.resolveMandatoryClass(entry.getKey()), name);
+                    }
+                }
+            }
+
+            if (this.aliases != null) {
+                for (Entry<String, String> entry : this.aliases.entrySet()) {
+                    xstream.alias(entry.getKey(), resolver.resolveMandatoryClass(entry.getValue()));
+                    // It can turn the auto-detection mode off
+                    xstream.processAnnotations(resolver.resolveMandatoryClass(entry.getValue()));
+                }
+            }
+
+            if (this.omitFields != null) {
+                for (Entry<String, String[]> entry : this.omitFields.entrySet()) {
+                    for (String name : entry.getValue()) {
+                        xstream.omitField(resolver.resolveMandatoryClass(entry.getKey()), name);
+                    }
+                }
+            }
+
+            if (this.converters != null) {
+                for (String name : this.converters) {
+                    Class<Converter> converterClass = resolver.resolveMandatoryClass(name, Converter.class);
+                    Converter converter;
+
+                    Constructor<Converter> con = null;
+                    try {
+                        con = conv",Classification: VULNERABLE. Vulnerability Type: CWE-19
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    public class CommandInjectionSecure {
+    public static void main(String[] args) {
+    try {
+    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    System.out.print(""Enter a command to execute: "");
+    String[] command = {""sh"", ""-c"", reader.readLine()};
+    ProcessBuilder processBuilder = new ProcessBuilder(command);
+    Process process = processBuilder.start();
+    BufferedReader processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String line;
+    while ((line = processOutputReader.readLine()) != null) {
+    System.out.println(line);
+    }
+    } catch (IOException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.*;
+    import javax.servlet.*;
+    import javax.servlet.http.*;
+    public class VulnerableServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    String userInput = request.getParameter(""input"");
+    String htmlResponse = ""<html><body>User Input: "" + userInput + ""</body></html>"";
+    response.setContentType(""text/html"");
+    PrintWriter out = response.getWriter();
+    out.println(htmlResponse);
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Cross-Site Scripting (XSS)
+"To fix the code and prevent Command Injection vulnerabilities, you should not directly concatenate user input into the command string. Instead, you should validate and sanitize the input to ensure it does not contain malicious commands.
+
+Here's an improved version of the code that uses `ProcessBuilder` to execute the command safely:
+
+```java
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class SecureCommandExecution {
+
+    public static void main(String[] args) {
+        try {
+            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+            System.out.print(""Enter a filename: "");
+            String filename = br.readLine();
+
+            // Validate and sanitize the input to prevent command injection
+            if (!isValidFilename(filename)) {
+                System.out.println(""Invalid filename"");
+                return;
+            }
+
+            ProcessBuilder processBuilder = new ProcessBuilder(""cat"", filename);
+            Process process = processBuilder.start();
+            
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+            
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static boolean isValidFilename(String filename) {
+        // Implement your validation logic",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"To fix the XSS vulnerability in the provided Java servlet code, you need to properly encode the user input before including it in the output HTML. Here is an updated version of the code that implements this security measure:
+
+```java
+import java.io.IOException;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+public class SecureServlet extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String userInput = request.getParameter(""input"");
+        
+        String safeUserInput = encodeHTML(userInput);
+        
+        String output = ""<p>User input: "" + safeUserInput + ""</p>"";
+        
+        response.getWriter().println(output);
+    }
+    
+    private String encodeHTML(String input) {
+        if (input == null) {
+            return """";
+        }
+        
+        StringBuilder builder = new StringBuilder();
+        for (char c : input.toCharArray()) {
+            switch (c) {
+                case '<':
+                    builder.append(""&lt;"");
+                    break;
+                case '>':
+                    builder.append(""&gt;"");
+                    break;
+                case '&':
+                    builder.append(""&amp;"");
+                    break;
+                case '""':
+                    builder.append(""&quot;"");
+                    break;
+                default",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"To fix the buffer overflow vulnerability in the provided Java code snippet, you can follow these secure coding practices:
+
+1. Use `StringBuilder` to dynamically allocate memory for the buffer based on the input length instead of using a fixed-size char array.
+2. Validate and restrict the length of user input to prevent buffer overflow.
+3. Ensure that only a safe amount of characters are read into the buffer.
+
+Here is an improved version of the code snippet that addresses these concerns:
+
+```java
+import java.util.Scanner;
+
+public class SecureBufferHandling {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        
+        System.out.print(""Enter a string: "");
+        String userInput = scanner.nextLine();
+        
+        // Ensure that the input does not exceed a safe limit
+        if (userInput.length() > 100) {
+            System.out.println(""Input exceeds maximum allowed length."");
+            return;
+        }
+        
+        // Use StringBuilder to dynamically allocate memory for buffer
+        StringBuilder buffer = new StringBuilder();
+        
+        // Copy characters from userInput to buffer ensuring safe handling
+        for (int i = 0; i < Math.min(userInput.length(), 10); i++) {
+            buffer.append(userInput.charAt(i));",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.File;
+    import java.io.FileInputStream;
+    import java.io.IOException;
+    public class FileRead {
+    public static void main(String[] args) {
+    String fileName = args[0]; // User input for file name
+    try {
+    File file = new File(fileName);
+    FileInputStream fis = new FileInputStream(file);
+    int content;
+    while ((content = fis.read()) != -1) {
+    System.out.print((char) content);
+    }
+    fis.close();
+    } catch (IOException e) {
+    System.out.println(""Error reading file: "" + e.getMessage());
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Path Traversal
+"To fix the Path Traversal vulnerability in the provided Java code snippet, you need to ensure that the file path supplied by the user is sanitized and validated before attempting to read the file. Here is an improved version of the code with proper security measures:
+
+```java
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Scanner;
+
+public class SecurePathTraversal {
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println(""Enter the file name:"");
+        String fileName = scanner.nextLine();
+
+        // Validate and sanitize the file path
+        if (!isValidFileName(fileName)) {
+            System.out.println(""Invalid file name."");
+            return;
+        }
+
+        File file = new File(fileName);
+
+        try {
+            // Check if the specified file exists and is a regular file
+            if (file.exists() && file.isFile()) {
+                FileReader fileReader = new FileReader(file);
+                int data;
+                while ((data = fileReader.read()) != -1) {
+                    System.out.print((char) data);
+                }
+                fileReader.close();
+            } else {
+                System.out.println(""File not found or is not a regular file."");
+            }
+        } catch (",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.File;
+    import java.io.FileInputStream;
+    import java.io.IOException;
+    public class FileRead {
+    public static void main(String[] args) {
+    String fileName = args[0];
+    try {
+    File file = new File(""C:/data/"" + fileName); // Vulnerable code - user input not sanitized
+    FileInputStream fis = new FileInputStream(file);
+    int content;
+    while ((content = fis.read()) != -1) {
+    System.out.print((char) content);
+    }
+    fis.close();
+    } catch (IOException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Path Traversal
+"    import java.sql.*;
+    public class SecureSQLInjectionPrevention {
+    public static void main(String[] args) {
+    String userInput = ""'; DROP TABLE users; --"";
+    try {
+    Connection conn = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    // Use PreparedStatement with parameterized query to prevent SQL injection
+    String query = ""SELECT * FROM users WHERE username = ?"";
+    PreparedStatement pstmt = conn.prepareStatement(query);
+    pstmt.setString(1, userInput);
+    ResultSet rs = pstmt.executeQuery();
+    while (rs.next()) {
+    System.out.println(rs.getString(""username""));
+    }
+    conn.close();
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"To fix the Cross-Site Scripting (XSS) vulnerability in the provided Java servlet code, you need to properly sanitize and encode user input before including it in the response. One common approach to prevent XSS attacks is to use HTML escaping. Here's an improved version of the code that addresses this issue:
+
+```java
+import java.io.IOException;
+import java.io.PrintWriter;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+public class SafeServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String userInput = request.getParameter(""input"");
+        PrintWriter out = response.getWriter();
+        out.println(""<html>"");
+        out.println(""<body>"");
+        // Sanitize and encode user input before including it in the response
+        out.println(""<p>User Input: "" + escapeHtml(userInput) + ""</p>"");
+        out.println(""</body>"");
+        out.println(""</html>"");
+    }
+
+    private String escapeHtml(String input) {
+        if (input == null) {
+            return """";
+        }
+        return input.replaceAll(""&"", ""&amp;"")
+                     .replaceAll(""<"", ""&lt;"")
+                     .replaceAll("">"", ""&gt;"")
+                     .replaceAll(""\"""", ""&quot",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"To fix the Path Traversal vulnerability in the provided Java code snippet, you need to ensure that the user-supplied file name does not allow access to files outside of the intended directory. Here's a secure version of the code that mitigates this vulnerability:
+
+```java
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Scanner;
+
+public class SecurePathTraversalExample {
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print(""Enter file name: "");
+        String fileName = scanner.nextLine();
+
+        // Validate the file name to prevent path traversal
+        if (!isValidFileName(fileName)) {
+            System.out.println(""Invalid file name."");
+            return;
+        }
+
+        File file = new File(""/path/to/directory/"" + fileName);
+
+        try (FileInputStream fis = new FileInputStream(file)) {
+            int data;
+            while ((data = fis.read()) != -1) {
+                System.out.print((char) data);
+            }
+        } catch (IOException e) {
+            System.out.println(""Error reading file: "" + e.getMessage());
+        }
+    }
+
+    // Method to validate the file name for path traversal
+    private static boolean isValidFileName(String",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.File;
+    import java.io.FileInputStream;
+    import java.io.IOException;
+    public class PathTraversalVulnerable {
+    public static void main(String[] args) {
+    String fileName = args[0]; // User input for the file name
+    try {
+    File file = new File(""C:/files/"" + fileName); // Vulnerable code concatenating user input to form a file path
+    FileInputStream fis = new FileInputStream(file);
+    int content;
+    while ((content = fis.read()) != -1) {
+    System.out.print((char) content);
+    }
+    fis.close();
+    } catch (IOException e) {
+    System.out.println(""Error reading file: "" + e.getMessage());
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Path Traversal
+"To fix the Path Traversal vulnerability in the provided Java code snippet, you need to ensure that the user input for the file name does not allow directory traversal attacks. Here's a secure version of the code that mitigates the Path Traversal vulnerability:
+
+```java
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Scanner;
+
+public class SecurePathTraversalExample {
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print(""Enter file name: "");
+        String fileName = scanner.nextLine();
+
+        // Validate the file name to prevent directory traversal
+        if (!isValidFileName(fileName)) {
+            System.out.println(""Invalid file name."");
+            return;
+        }
+
+        File file = new File(""C:\\Users\\Documents\\"" + fileName);
+
+        try (FileInputStream fis = new FileInputStream(file)) {
+            int data;
+            while ((data = fis.read()) != -1) {
+                System.out.print((char) data);
+            }
+        } catch (IOException e) {
+            System.out.println(""Error reading file: "" + e.getMessage());
+        }
+    }
+
+    private static boolean isValidFileName(String fileName) {
+        // Ensure that the fileName does not contain",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    package io.vertx.core.http;
+    import io.netty.util.AsciiString;
+    import io.vertx.core.http.impl.HttpUtils;
+    /**
+    * Contains often used Header names.
+    * <p>
+    * It also contains a utility method to create optimized {@link CharSequence} which can be used as header name and value.
+    *
+    * @author <a href=""mailto:nmaurer@redhat.com"">Norman Maurer</a>
+    */
+    public final class HttpHeaders {
+    /**
+    * Accept header name
+    */
+    public static final CharSequence ACCEPT = createOptimized(io.netty.handler.codec.http.HttpHeaders.Names.ACCEPT);
+    /**
+    * Accept-Charset header name
+    */
+    public static final CharSequence ACCEPT_CHARSET = createOptimized(io.netty.handler.codec.http.HttpHeaders.Names.ACCEPT_CHARSET);
+    /**
+    * Accept-Encoding header name
+    */
+    public static final CharSequence ACCEPT_ENCODING = createOptimized(io.netty.handler.codec.http.HttpHeaders.Names.ACCEPT_ENCODING);
+    /**
+    * Accept-Language header name
+    */
+    public static final CharSequence ACCEPT_LANGUAGE = createOptimized(io.netty.handler.codec.http.HttpHeaders.Names.ACCEPT_LANGUAGE);
+    /**
+    * Accept-Ranges header name
+    */
+    public static final CharSequence ACCEPT_RANGES = createOptimized(io.netty.handler.codec.http.HttpHeaders.Names.ACCEPT_RANGES);
+    /**
+    * Accept-Patch header name
+    */
+    public static final CharSequence ACCEPT_PATCH = createOptimized(io.netty.handler.codec.http.HttpHeaders.Names.ACCEPT_PATCH);
+    /**
+    * Access-Control-Allow-Credentials header name
+    */
+    public static final CharSequence ACCESS_CONTROL_ALLOW_CREDENTIALS = createOptimized(io.netty.handler.codec.http.HttpHeaders.Names.ACCESS_CONTROL_ALLOW_CREDENTIALS);
+    /**
+    * Access-Control-Allow-Headers header name
+    */
+    public static final CharSequence ACCESS_CONTROL_ALLOW_HEADERS = createOptimized(io.netty.handler.codec.http.HttpHeaders.Names.ACCESS_CONTROL_ALLOW_HEADERS);
+    /**
+    * Access-Control-Allow-Methods header name
+    */
+    public static final CharSequence ACCESS_CONTROL_",Classification: NOT_VULNERABLE. Vulnerability Type: None
+"    import java.io.File;
+    import java.io.FileReader;
+    import java.io.IOException;
+    import java.util.Scanner;
+    public class PathTraversalVulnerability {
+    public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+    System.out.println(""Enter a file name: "");
+    String fileName = scanner.nextLine();
+    try {
+    File file = new File(""C:\\data\\"" + fileName);
+    FileReader fr = new FileReader(file);
+    int data;
+    while ((data = fr.read()) != -1) {
+    System.out.print((char) data);
+    }
+    fr.close();
+    } catch (IOException e) {
+    System.out.println(""Error reading file: "" + e.getMessage());
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Path Traversal
+"To fix the Path Traversal vulnerability in the provided Java code snippet, you need to ensure that the user input for the file name is properly sanitized and restricted to prevent directory traversal attacks. Here's an improved version of the code with proper security measures:
+
+```java
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Scanner;
+
+public class SecurePathTraversal {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print(""Enter file name: "");
+        String fileName = scanner.nextLine();
+
+        if (!isValidFileName(fileName)) {
+            System.out.println(""Invalid file name."");
+            return;
+        }
+
+        File directory = new File(""/path/to/directory/"");
+        
+        File file = new File(directory, fileName);
+
+        if(file.exists() && file.isFile()) {
+            try {
+                byte[] fileContent = Files.readAllBytes(file.toPath());
+                System.out.println(new String(fileContent));
+            } catch (IOException e) {
+                System.out.println(""Error reading file."");
+            }
+        } else {
+            System.out.println(""File not found."");
+        }
+    }
+
+    private static boolean isValidFileName(String fileName) {
+        // Add validation logic here to",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.IOException;
+    import java.io.PrintWriter;
+    import javax.servlet.http.HttpServlet;
+    import javax.servlet.http.HttpServletRequest;
+    import javax.servlet.http.HttpServletResponse;
+    public class XSSVulnerableServlet extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    String userInput = request.getParameter(""input"");
+    // Vulnerable code: directly outputting user input without proper sanitization
+    PrintWriter out = response.getWriter();
+    out.println(""<html>"");
+    out.println(""<body>"");
+    out.println(""<h1>Hello, "" + userInput + ""!</h1>"");
+    out.println(""</body>"");
+    out.println(""</html>"");
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Cross-Site Scripting (XSS)
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    public class CommandInjectionExample {
+    public static void main(String[] args) {
+    try {
+    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    System.out.print(""Enter a command to execute: "");
+    String command = reader.readLine();
+    // Vulnerable code - directly executing user input as a command
+    Runtime.getRuntime().exec(command);
+    } catch (IOException e) {
+    System.out.println(""An error occurred while executing the command."");
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Command Injection
+"    import java.sql.*;
+    public class SQLInjectionSecure {
+    public static void main(String[] args) {
+    try {
+    String userInput = ""admin'; DROP TABLE users; --"";
+    Connection conn = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    // Use PreparedStatement to securely pass user input as parameters
+    String query = ""SELECT * FROM users WHERE username = ?"";
+    PreparedStatement pstmt = conn.prepareStatement(query);
+    pstmt.setString(1, userInput);
+    ResultSet rs = pstmt.executeQuery();
+    while (rs.next()) {
+    System.out.println(""Username: "" + rs.getString(""username""));
+    }
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.IOException;
+    import java.io.PrintWriter;
+    import javax.servlet.http.HttpServlet;
+    import javax.servlet.http.HttpServletRequest;
+    import javax.servlet.http.HttpServletResponse;
+    public class VulnerableServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    String userInput = request.getParameter(""input"");
+    // Improperly handling user input in the response without proper sanitization
+    PrintWriter out = response.getWriter();
+    out.println(""<html>"");
+    out.println(""<body>"");
+    out.println(""<h1>User Input: "" + userInput + ""</h1>""); // Vulnerable to XSS
+    out.println(""</body>"");
+    out.println(""</html>"");
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Cross-Site Scripting (XSS)
+"    import org.apache.commons.lang3.StringEscapeUtils;
+    public class XSSFixedCode {
+    public static void main(String[] args) {
+    // Simulating user input coming from a form submission
+    String userInput = ""<script>alert('XSS Vulnerability!')</script>"";
+    // Escaping user input to prevent XSS attacks
+    String escapedInput = StringEscapeUtils.escapeHtml4(userInput);
+    // Output the properly escaped input to an HTML page
+    System.out.println(""<div>"" + escapedInput + ""</div>"");
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.sql.*;
+    public class SQLInjectionExample {
+    public static void main(String[] args) {
+    try {
+    String userInput = args[0]; // User input that will be used in the SQL query
+    // Vulnerable code where user input is directly concatenated into the SQL query
+    String sqlQuery = ""SELECT * FROM Users WHERE username='"" + userInput + ""'"";
+    Connection conn = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    Statement stmt = conn.createStatement();
+    ResultSet rs = stmt.executeQuery(sqlQuery);
+    while (rs.next()) {
+    System.out.println(""User: "" + rs.getString(""username""));
+    }
+    conn.close();
+    } catch (Exception e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: SQL Injection
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    public class CommandInjectionExample {
+    public static void main(String[] args) throws IOException {
+    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    System.out.print(""Enter a file name: "");
+    String fileName = reader.readLine();
+    // Vulnerable code where user input is directly concatenated into the command
+    String command = ""cat "" + fileName;
+    Process process = Runtime.getRuntime().exec(command);
+    BufferedReader processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String line;
+    while ((line = processOutputReader.readLine()) != null) {
+    System.out.println(line);
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Command Injection
+"    import java.io.*;
+    public class XSSVulnerableCode {
+    public static void main(String[] args) {
+    // Simulating user input from a form
+    String userInput = ""<script>alert('XSS Attack!')</script>"";
+    // Improperly handling user input by directly outputting it to an HTML response
+    String output = ""<html><body>Welcome, "" + userInput + ""</body></html>"";
+    // Outputting the result
+    System.out.println(output);
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Cross-Site Scripting (XSS)
+"    import java.sql.*;
+    public class SecureSQLInjectionExample {
+    public static void main(String[] args) {
+    try {
+    String userInput = args[0]; // User input from command line argument
+    Connection conn = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    String query = ""SELECT * FROM users WHERE username=?"";
+    PreparedStatement pstmt = conn.prepareStatement(query);
+    pstmt.setString(1, userInput);
+    ResultSet rs = pstmt.executeQuery();
+    while (rs.next()) {
+    System.out.println(rs.getString(""username"") + ""\t"" + rs.getString(""password""));
+    }
+    rs.close();
+    pstmt.close();
+    conn.close();
+    } catch (Exception e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"To fix the SQL Injection vulnerability in the provided Java code snippet, you should use parameterized queries instead of directly concatenating user input into the SQL query. Parameterized queries help prevent SQL injection attacks by separating the SQL query logic from the user input data.
+
+Here is an updated version of the code with a parameterized query:
+
+```java
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
+public class SecureSQLQuery {
+
+    public static void main(String[] args) {
+        String userInput = args[0]; // Simulating user input
+
+        try {
+            Connection conn = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+            
+            // Use PreparedStatement to create a parameterized query
+            String query = ""SELECT * FROM users WHERE username=?"";
+            PreparedStatement pstmt = conn.prepareStatement(query);
+            pstmt.setString(1, userInput); // Set the user input as a parameter
+            
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                System.out.println(""User found: "" + rs.getString(""username""));
+            }
+
+            rs.close();
+            pstmt.close();
+            conn.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.sql.*;
+    public class SecureSQLInjectionExample {
+    public static void main(String[] args) {
+    String userInput = ""'; DROP TABLE users; --""; // User input with malicious intent
+    try {
+    Connection connection = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    // Use PreparedStatement to prevent SQL Injection
+    String query = ""SELECT * FROM users WHERE username = ?"";
+    PreparedStatement preparedStatement = connection.prepareStatement(query);
+    preparedStatement.setString(1, userInput);
+    ResultSet resultSet = preparedStatement.executeQuery();
+    while (resultSet.next()) {
+    System.out.println(""Username: "" + resultSet.getString(""username""));
+    System.out.println(""Password: "" + resultSet.getString(""password""));
+    }
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.sql.*;
+    public class SQLInjectionExample {
+    public static void main(String[] args) {
+    try {
+    String userInput = ""'; DROP TABLE users; --""; // User input containing SQL injection attack
+    String query = ""SELECT * FROM users WHERE username = '"" + userInput + ""'"";
+    Connection connection = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    Statement statement = connection.createStatement();
+    ResultSet resultSet = statement.executeQuery(query);
+    while (resultSet.next()) {
+    System.out.println(""Username: "" + resultSet.getString(""username""));
+    System.out.println(""Password: "" + resultSet.getString(""password""));
+    }
+    connection.close();
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: SQL Injection
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    public class CommandInjectionExample {
+    public static void main(String[] args) {
+    try {
+    // Accept user input for the command to be executed
+    System.out.print(""Enter a command to execute: "");
+    BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+    String command = br.readLine();
+    // Execute the command using Runtime.exec()
+    Process process = Runtime.getRuntime().exec(command);
+    // Read and display the output of the executed command
+    BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String line;
+    while ((line = reader.readLine()) != null) {
+    System.out.println(line);
+    }
+    } catch (IOException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Command Injection
+"    import java.sql.*;
+    public class SQLInjectionVulnerable {
+    public static void main(String[] args) {
+    String userInput = ""'; DROP TABLE users; --""; // Malicious input that could drop the 'users' table
+    try {
+    Connection connection = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    Statement statement = connection.createStatement();
+    // Vulnerable query construction
+    String query = ""SELECT * FROM users WHERE username = '"" + userInput + ""'"";
+    ResultSet resultSet = statement.executeQuery(query);
+    while (resultSet.next()) {
+    System.out.println(resultSet.getString(""username""));
+    }
+    resultSet.close();
+    statement.close();
+    connection.close();
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: SQL Injection
+"To fix the Command Injection vulnerability in the provided Java code snippet, we need to properly validate and sanitize user input before constructing the command. One way to prevent Command Injection attacks is to use ProcessBuilder instead of Runtime.exec(). ProcessBuilder allows you to set the command and arguments separately, which helps avoid injection vulnerabilities.
+
+Here is an improved version of the code with security measures implemented:
+
+```java
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+
+public class SecureCommandExecution {
+    public static void main(String[] args) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+
+        System.out.print(""Enter a directory name: "");
+        String directoryName = reader.readLine();
+
+        // Validate and sanitize user input to prevent command injection
+        if (!isValidDirectoryName(directoryName)) {
+            System.out.println(""Invalid directory name"");
+            return;
+        }
+
+        List<String> command = new ArrayList<>();
+        command.add(""ls"");
+        command.add(""-l"");
+        command.add(directoryName);
+
+        ProcessBuilder processBuilder = new ProcessBuilder(command);
+        
+        Process process = processBuilder.start();
+        
+        BufferedReader outputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+        String line;",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.util.Scanner;
+    public class BufferOverflowExample {
+    public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print(""Enter your name: "");
+    String name = scanner.nextLine();
+    // Vulnerability: If the user enters a long string, it can cause a buffer overflow
+    char[] buffer = new char[10];
+    name.getChars(0, name.length(), buffer, 0);
+    System.out.println(""Hello, "" + new String(buffer));
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Buffer Overflow
+"public void processPath(String path) {
+    File file = new File(""../uploads/"" + path);
+    file.delete();
+    // Allows path traversal
+}",Classification: VULNERABLE. Vulnerability Type: CWE-23: Relative Path Traversal
+"    import java.io.BufferedReader;
+    import java.io.FileReader;
+    import java.io.IOException;
+    import java.util.Scanner;
+    public class PathTraversalVulnerabilityExample {
+    public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+    System.out.println(""Enter the file name to read:"");
+    String fileName = scanner.nextLine();
+    try {
+    BufferedReader reader = new BufferedReader(new FileReader(fileName));
+    String line;
+    while ((line = reader.readLine()) != null) {
+    System.out.println(line);
+    }
+    reader.close();
+    } catch (IOException e) {
+    System.out.println(""Error reading file: "" + e.getMessage());
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Path Traversal
+"To fix the XSS vulnerability in the given Java code snippet, you need to properly escape the user input before printing it back to the webpage. One common way to do this is by using a library like OWASP's ESAPI (Enterprise Security API) or by implementing your own escaping logic.
+
+Here's an example of how you can fix the code using ESAPI's Encoder class to escape the user input:
+
+```java
+import org.owasp.esapi.ESAPI;
+import org.owasp.esapi.codecs.HTMLEntityCodec;
+
+public class XSSFixedCode {
+
+    public static void main(String[] args) {
+        String userInput = ""<script>alert('XSS Vulnerability')</script>"";
+
+        // Properly escaping user input before printing it back to the webpage
+        HTMLEntityCodec codec = new HTMLEntityCodec();
+        String escapedUserInput = codec.encodeForHTML(userInput);
+
+        // Printing HTML content with escaped user input
+        System.out.println(""<html>"");
+        System.out.println(""<head><title>XSS Fixed Demo</title></head>"");
+        System.out.println(""<body>"");
+        System.out.println(""User input: "" + escapedUserInput);
+        System.out.println(""</body>"");
+        System.out.println(""</html",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.IOException;
+    import java.io.PrintWriter;
+    import javax.servlet.http.HttpServlet;
+    import javax.servlet.http.HttpServletRequest;
+    import javax.servlet.http.HttpServletResponse;
+    public class SecureServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    String userInput = request.getParameter(""input"");
+    PrintWriter out = response.getWriter();
+    out.println(""<html>"");
+    out.println(""<body>"");
+    out.println(""<h1>User Input: "" + encodeHtml(userInput) + ""</h1>"");
+    out.println(""</body>"");
+    out.println(""</html>"");
+    }
+    private String encodeHtml(String input) {
+    return input == null ? """" : input.replaceAll(""&"", ""&amp;"")
+    .replaceAll(""<"", ""&lt;"")
+    .replaceAll("">"", ""&gt;"")
+    .replaceAll(""\"""", ""&quot;"")
+    .replaceAll(""'"", ""&#39;"");
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.util.Scanner;
+    public class BufferOverflowExample {
+    public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print(""Enter a string: "");
+    String input = scanner.nextLine();
+    char[] buffer = new char[10];
+    // Truncate input if it exceeds buffer size
+    if (input.length() > buffer.length) {
+    System.arraycopy(input.toCharArray(), 0, buffer, 0, buffer.length);
+    } else {
+    input.getChars(0, input.length(), buffer, 0);
+    }
+    System.out.println(""Buffer contents: "" + new String(buffer));
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"To fix the Path Traversal vulnerability in the provided Java code snippet, you should validate the user input to prevent malicious input that can access files outside the intended directory. Here is an improved version of the code with proper security measures:
+
+```java
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Scanner;
+
+public class SecurePathTraversal {
+
+    private static final String BASE_PATH = ""C:/files/""; // Base directory where files are stored
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print(""Enter file name to read: "");
+        String fileName = scanner.nextLine();
+
+        if (isValidFileName(fileName)) {
+            try {
+                File file = new File(BASE_PATH + fileName);
+                FileInputStream fis = new FileInputStream(file);
+
+                int content;
+                while ((content = fis.read()) != -1) {
+                    System.out.print((char) content);
+                }
+
+                fis.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println(""Invalid file name."");
+        }
+
+        scanner.close();
+    }
+
+    private static boolean isValidFileName(String fileName) {
+        // Implement validation logic here, for",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"To fix the Path Traversal vulnerability in the provided Java code snippet, you need to sanitize and validate the input file name to prevent directory traversal attacks. Here's an improved version of the code with proper security measures:
+
+```java
+import java.io.File;
+import java.util.Scanner;
+
+public class SecurePathTraversal {
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print(""Enter file name: "");
+        String fileName = scanner.next();
+
+        if (isValidFileName(fileName)) {
+            File file = new File(""/path/to/directory/"" + fileName);
+
+            try {
+                if (file.exists()) {
+                    System.out.println(""File exists!"");
+                } else {
+                    System.out.println(""File does not exist."");
+                }
+            } catch (Exception e) {
+                System.out.println(""Error accessing file."");
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println(""Invalid file name."");
+        }
+    }
+
+    private static boolean isValidFileName(String fileName) {
+        // Validate the file name to ensure it does not contain any directory traversal characters
+        // For example, you can restrict it to alphanumeric characters and specific allowed symbols
+        // You can also check for specific patterns that indicate",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"To fix the Command Injection vulnerability in the provided Java code, you need to properly validate and sanitize user input before constructing the command to be executed by `Runtime.getRuntime().exec()` method. Here's an improved version of the code that addresses this issue:
+
+```java
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class SecureCommandExecution {
+
+    public static void main(String[] args) {
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+
+            System.out.print(""Enter the IP address to ping: "");
+            String ipAddress = reader.readLine();
+
+            // Validate user input (IP address) to prevent command injection
+            if (isValidIpAddress(ipAddress)) {
+                String command = ""ping -c 4 "" + ipAddress;
+                Process process = Runtime.getRuntime().exec(command);
+
+                BufferedReader inputStreamReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                String line;
+
+                while ((line = inputStreamReader.readLine()) != null) {
+                    System.out.println(line);
+                }
+            } else {
+                System.out.println(""Invalid IP address provided."");
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Method to validate IP address format
+    private static boolean isValidIpAddress(String",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"private HttpServletRequest createMockRequest(String path) {
+        HttpServletRequest request = createNiceMock(HttpServletRequest.class);
+
+        expect(request.getServletPath()).andReturn("""");
+        expect(request.getPathInfo()).andReturn(path);
+        replay(request);
+        return request;
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: NVD-CWE-noinfo
+"    import java.util.Scanner;
+    public class SecureBufferExample {
+    public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print(""Enter a string: "");
+    String userInput = scanner.nextLine();
+    int maxLength = 10; // Maximum length of the buffer
+    char[] buffer = new char[maxLength];
+    // Copy user input into the buffer with proper bounds checking
+    for (int i = 0; i < userInput.length() && i < maxLength; i++) {
+    buffer[i] = userInput.charAt(i);
+    }
+    System.out.println(""User input copied into buffer: "" + new String(buffer));
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    public class CommandInjectionVulnerability {
+    public static void main(String[] args) {
+    try {
+    // Simulating user input being passed to a command execution
+    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    System.out.print(""Enter a command to execute: "");
+    String userInput = reader.readLine();
+    // Vulnerable code - user input is directly concatenated into the command string
+    String command = ""ls "" + userInput;
+    // Execute the command
+    Process process = Runtime.getRuntime().exec(command);
+    // Read and display the output of the command
+    BufferedReader outputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String line;
+    while ((line = outputReader.readLine()) != null) {
+    System.out.println(line);
+    }
+    } catch (IOException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Command Injection
+"To fix the Command Injection vulnerability in the provided Java code snippet, you should not directly pass user input to the `Runtime.exec()` method. Instead, you should use a safer alternative like `ProcessBuilder` and properly sanitize and validate user input. Here's an updated version of the code with proper security measures:
+
+```java
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class CommandInjectionExample {
+
+    public static void main(String[] args) {
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            System.out.print(""Enter a command to execute: "");
+            String command = reader.readLine();
+            
+            // Validate and sanitize the user input
+            if (!isValidCommand(command)) {
+                System.out.println(""Invalid command. Please try again."");
+                return;
+            }
+            
+            // Execute the command using ProcessBuilder
+            ProcessBuilder processBuilder = new ProcessBuilder(command);
+            Process process = processBuilder.start();
+            
+            // Read the output of the command if needed
+            BufferedReader outputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            while ((line = outputReader.readLine()) != null) {
+                System.out.println(line);
+            }
+        } catch (IOException e) {",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"To fix the Command Injection vulnerability in the given Java code snippet, you should implement security measures to prevent malicious commands from being executed. One way to do this is by using a whitelist approach, where you restrict the input commands to a predefined set of safe commands. Here's an improved version of the code that incorporates this security measure:
+
+```java
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class SecureCommandExecution {
+
+    private static final String[] SAFE_COMMANDS = {""ls"", ""dir"", ""echo""};
+
+    public static void main(String[] args) {
+        try {
+            // Accept user input for a command to execute
+            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+            System.out.print(""Enter a command to execute: "");
+            String userInput = br.readLine();
+
+            // Check if the user-provided command is in the safe commands whitelist
+            if (!isSafeCommand(userInput)) {
+                System.out.println(""Invalid command. Please provide a safe command."");
+                return;
+            }
+
+            // Execute the user-provided command
+            Process process = Runtime.getRuntime().exec(userInput);
+
+            // Read and display the output of the executed command
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.util.Scanner;
+    import java.util.Arrays;
+    public class SecureBufferHandling {
+    public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print(""Enter a string: "");
+    String input = scanner.nextLine();
+    char[] buffer = new char[10];
+    // Copy only up to 10 characters from input to buffer
+    int copyLength = Math.min(input.length(), 10);
+    Arrays.copyOf(input.toCharArray(), copyLength, buffer.length);
+    // Now the buffer will not overflow even if the user enters a longer string
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.sql.Connection;
+    import java.sql.DriverManager;
+    import java.sql.ResultSet;
+    import java.sql.Statement;
+    public class SQLInjectionVulnerable {
+    public static void main(String[] args) {
+    String userInput = args[0]; // Assume userInput is provided by the user
+    try {
+    Connection connection = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    Statement statement = connection.createStatement();
+    String query = ""SELECT * FROM users WHERE username = '"" + userInput + ""'"";
+    ResultSet resultSet = statement.executeQuery(query);
+    while(resultSet.next()) {
+    System.out.println(""User ID: "" + resultSet.getInt(""id"") + "", Username: "" + resultSet.getString(""username""));
+    }
+    statement.close();
+    connection.close();
+    } catch (Exception e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: SQL Injection
+"@Override
+    public boolean validateCrumb(ServletRequest request, String salt, String crumb) {
+        if (request instanceof HttpServletRequest) {
+            String newCrumb = issueCrumb(request, salt);
+            if ((newCrumb != null) && (crumb != null)) {
+                return MessageDigest.isEqual(newCrumb.getBytes(), crumb.getBytes());
+            }
+        }
+        return false;
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: CWE-200
+"    import java.io.*;
+    public class XSSVulnerabilityExample {
+    public static void main(String[] args) {
+    // Simulating user input
+    String userInput = ""<script>alert('XSS Attack!')</script>"";
+    // Displaying the user input without proper sanitization
+    System.out.println(""User input: "" + userInput);
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Cross-Site Scripting (XSS)
+"To fix the Command Injection vulnerability in the provided Java code snippet, we need to ensure that user input is properly sanitized and validated before being passed to the `exec` method of the `Runtime` class. Here is an improved version of the code with proper security measures implemented:
+
+```java
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class SafeCommandExecution {
+
+    public static void main(String[] args) {
+        try {
+            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+            System.out.print(""Enter a command to execute: "");
+            String userInput = br.readLine();
+
+            // Sanitize and validate user input
+            if (!isValidInput(userInput)) {
+                System.out.println(""Invalid input. Please try again."");
+                return;
+            }
+
+            // Execute the command using ProcessBuilder for better security
+            ProcessBuilder processBuilder = new ProcessBuilder(""ls"", userInput);
+            Process process = processBuilder.start();
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static boolean isValidInput(String userInput",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.util.Scanner;
+    public class BufferOverflowExample {
+    public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print(""Enter your name: "");
+    String name = scanner.nextLine();
+    // Vulnerable code that does not properly handle user input leading to buffer overflow
+    char[] buffer = new char[10];
+    int length = name.length();
+    if (length <= buffer.length) {
+    name.getChars(0, length, buffer, 0);
+    System.out.println(""Hello, "" + new String(buffer));
+    } else {
+    System.out.println(""Input too long!"");
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Buffer Overflow
+"    import java.util.Scanner;
+    public class BufferOverflowExample {
+    public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print(""Enter your name: "");
+    String name = scanner.nextLine();
+    // Vulnerability: Not validating the length of input
+    byte[] buffer = new byte[10];
+    System.arraycopy(name.getBytes(), 0, buffer, 0, name.length());
+    System.out.println(""Hello, "" + new String(buffer));
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Buffer Overflow
+"    import java.io.File;
+    import java.io.FileInputStream;
+    import java.io.IOException;
+    import java.util.Scanner;
+    public class PathTraversalExample {
+    public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print(""Enter file name: "");
+    String fileName = scanner.nextLine();
+    try {
+    File file = new File(""C:/data/"" + fileName);
+    FileInputStream fis = new FileInputStream(file);
+    int data;
+    while ((data = fis.read()) != -1) {
+    System.out.print((char) data);
+    }
+    fis.close();
+    } catch (IOException e) {
+    System.out.println(""Error reading file: "" + e.getMessage());
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Path Traversal
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    public class CommandInjectionSecure {
+    public static void main(String[] args) throws IOException {
+    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    System.out.print(""Enter a filename to display: "");
+    String filename = reader.readLine();
+    ProcessBuilder processBuilder = new ProcessBuilder(""cat"", filename);
+    Process process = processBuilder.start();
+    BufferedReader inputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String line;
+    while ((line = inputReader.readLine()) != null) {
+    System.out.println(line);
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.File;
+    import java.io.FileReader;
+    import java.io.IOException;
+    import java.util.Scanner;
+    public class PathTraversalVulnerability {
+    public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print(""Enter file name: "");
+    String fileName = scanner.next();
+    File file = new File(""/path/to/files/"" + fileName);
+    try (FileReader fileReader = new FileReader(file)) {
+    int data;
+    while ((data = fileReader.read()) != -1) {
+    System.out.print((char) data);
+    }
+    } catch (IOException e) {
+    System.out.println(""Error reading file: "" + e.getMessage());
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Path Traversal
+"    import java.io.*;
+    public class UseAfterFreeExample {
+    public void processResource() {
+    Object resource = new Object();
+    resource = null;
+    // Attempt to use the resource after free
+    System.out.println(resource.toString());
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: CWE-416: Use After Free
+"    import java.util.Scanner;
+    public class SecureBufferExample {
+    public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print(""Enter a string: "");
+    String userInput = scanner.nextLine();
+    // Validate user input length to prevent buffer overflow
+    if (userInput.length() > 10) {
+    System.out.println(""Input string exceeds buffer size. Please enter a shorter string."");
+    return;
+    }
+    char[] buffer = new char[10];
+    // Copy user input to buffer with proper length validation
+    userInput.getChars(0, Math.min(userInput.length(), 10), buffer, 0);
+    System.out.println(""Buffer contents: "" + new String(buffer));
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"To fix the XSS vulnerability in the provided Java code snippet, you need to properly sanitize the user input before including it in the response. One way to mitigate XSS attacks is by escaping special characters that could be interpreted as HTML or JavaScript code when rendering the user input.
+
+Here's an updated version of the code snippet with proper security measures implemented:
+
+```java
+import java.io.IOException;
+import java.io.PrintWriter;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+public class SecureServlet extends HttpServlet {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String userInput = request.getParameter(""input"");
+        
+        // Sanitize user input to prevent XSS attacks
+        userInput = escapeHtml(userInput);
+        
+        PrintWriter out = response.getWriter();
+        out.println(""<html>"");
+        out.println(""<body>"");
+        out.println(""<h1>User Input: "" + userInput + ""</h1>""); // Safely include sanitized user input in the response
+        out.println(""</body>"");
+        out.println(""</html>"");
+    }
+    
+    private String escapeHtml(String input) {
+        return input.replace(""&"", ""&amp;"")
+                    .replace(""<"", ""&lt;"")
+                    .replace("">"", ""&gt;"")
+                    .",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.util.Scanner;
+    public class SecureBuffer {
+    public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print(""Enter your name: "");
+    String input = scanner.nextLine(); // Read the entire line
+    // Limiting the input size to prevent buffer overflow
+    if (input.length() > 10) {
+    System.out.println(""Input exceeds maximum length."");
+    return;
+    }
+    char[] buffer = new char[10];
+    input.getChars(0, Math.min(input.length(), 10), buffer, 0); // Copy up to 10 characters
+    System.out.println(""Hello, "" + new String(buffer).trim()); // Trim any extra spaces
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.sql.*;
+    public class SQLInjectionSecure {
+    public static void main(String[] args) {
+    try {
+    String username = args[0]; // User input
+    String password = args[1]; // User input
+    Connection conn = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""root"", ""password"");
+    String query = ""SELECT * FROM users WHERE username=? AND password=?"";
+    PreparedStatement pstmt = conn.prepareStatement(query);
+    pstmt.setString(1, username);
+    pstmt.setString(2, password);
+    ResultSet rs = pstmt.executeQuery();
+    while(rs.next()) {
+    System.out.println(""Logged in successfully as: "" + rs.getString(""username""));
+    }
+    rs.close();
+    pstmt.close();
+    conn.close();
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.sql.*;
+    public class Main {
+    public static void main(String[] args) {
+    String username = ""testuser"";
+    String password = ""testpass"";
+    String query = ""SELECT * FROM users WHERE username=? AND password=?"";
+    try {
+    Connection conn = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""root"", ""root"");
+    PreparedStatement pstmt = conn.prepareStatement(query);
+    pstmt.setString(1, username);
+    pstmt.setString(2, password);
+    ResultSet rs = pstmt.executeQuery();
+    while(rs.next()) {
+    System.out.println(rs.getString(""username""));
+    }
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.util.logging.*; public class LoggerExample { public void logSensitiveData(String data) { Logger.getLogger(LoggerExample.class.getName()).log(Level.INFO, data); } }",Classification: VULNERABLE. Vulnerability Type: CWE-532/Insertion of Sensitive Information into Log File
+"    import java.io.IOException;
+    import javax.servlet.http.*;
+    public class SecureServlet extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    String userInput = request.getParameter(""input"");
+    // Sanitize user input to prevent XSS
+    String safeUserInput = escapeHtml(userInput);
+    String output = ""<h1>Welcome "" + safeUserInput + ""!</h1>"";
+    response.setContentType(""text/html"");
+    response.getWriter().println(output);
+    }
+    // Method to escape HTML characters in user input
+    private String escapeHtml(String input) {
+    if (input == null) {
+    return """";
+    }
+    return input.replace(""&"", ""&amp;"")
+    .replace(""<"", ""&lt;"")
+    .replace("">"", ""&gt;"")
+    .replace(""\"""", ""&quot;"")
+    .replace(""'"", ""&#39;"");
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"To prevent Command Injection vulnerabilities in Java code, you should never directly execute user-provided input as a command. Instead, you should validate and sanitize the input before using it. One way to safely execute commands in Java is by using ProcessBuilder with a predefined list of allowed commands. Here's how you can refactor the code snippet to make it secure:
+
+```java
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+
+public class CommandInjectionFixed {
+
+    public static void main(String[] args) {
+        try {
+            // Get user input
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            System.out.print(""Enter a command to execute: "");
+            String command = reader.readLine();
+
+            // Define a list of allowed commands
+            List<String> allowedCommands = new ArrayList<>();
+            allowedCommands.add(""ls""); // Add more allowed commands as needed
+
+            // Validate the user input against the list of allowed commands
+            if (!allowedCommands.contains(command)) {
+                System.out.println(""Command not allowed"");
+                return;
+            }
+
+            // Execute the command using ProcessBuilder
+            ProcessBuilder processBuilder = new ProcessBuilder(command);
+            Process process = processBuilder.start",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"```java
+import java.sql.*;
+
+public class Main {
+    public static void main(String[] args) {
+        String username = ""testUser"";
+        String password = ""testPassword"";
+        String query = ""SELECT * FROM Users WHERE Username = '"" + username + ""' AND Password = '"" + password + ""'"";
+        
+        try {
+            Connection conn = DriverManager.getConnection(""jdbc:mysql://localhost:3306/myDatabase"");
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(query);
+            
+            while(rs.next()) {
+                System.out.println(rs.getString(""Username""));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();员
+        }
+    }
+}
+```",Classification: VULNERABLE. Vulnerability Type: Improper Input Validation
+"To fix the command injection vulnerability in the provided Java code snippet, you need to properly validate and sanitize the input before passing it to the command shell. One way to achieve this is by using a ProcessBuilder instead of directly executing a command with Runtime.exec().
+
+Here is an updated version of your code with proper security measures implemented:
+
+```java
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class CommandInjectionSecure {
+
+    public static void main(String[] args) {
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            System.out.print(""Enter a hostname to ping: "");
+            String hostname = reader.readLine();
+
+            // Validate input: Ensure that the hostname contains only allowed characters
+            if (!isValidHostname(hostname)) {
+                System.out.println(""Invalid hostname input"");
+                return;
+            }
+
+            // Use ProcessBuilder to execute the ping command securely
+            ProcessBuilder processBuilder = new ProcessBuilder(""ping"", hostname);
+            Process process = processBuilder.start();
+
+            BufferedReader inputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            while ((line = inputReader.readLine()) != null) {
+                System.out.println(line);
+            }
+
+        } catch (IOException e) {
+            e",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"To fix the Path Traversal vulnerability in the provided Java code snippet, you need to ensure that the user-supplied input for the file name is properly sanitized and validated to prevent malicious path traversal attacks. One way to do this is by using a whitelist approach where you only allow specific characters or patterns in the file name.
+
+Here's an example of how you can modify the code to mitigate the Path Traversal vulnerability:
+
+```java
+import java.io.File;
+import java.io.IOException;
+import java.util.Scanner;
+
+public class SecurePathTraversal {
+
+    public static void main(String[] args) throws IOException {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print(""Enter a file name: "");
+        String fileName = scanner.nextLine();
+
+        // Check if the file name contains only allowed characters
+        if (!isValidFileName(fileName)) {
+            System.out.println(""Invalid file name."");
+            return;
+        }
+
+        File directory = new File(""/path/to/directory/"");
+        File file = new File(directory, fileName);
+
+        if (file.getCanonicalPath().startsWith(directory.getCanonicalPath())) {
+            if (file.exists()) {
+                System.out.println(""File exists!"");
+                // Do something with the file
+            } else {
+                System.out.println(""File",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.IOException;
+    import java.io.PrintWriter;
+    import org.owasp.encoder.Encode;
+    import javax.servlet.http.HttpServlet;
+    import javax.servlet.http.HttpServletRequest;
+    import javax.servlet.http.HttpServletResponse;
+    public class SecureServlet extends HttpServlet {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    String userInput = request.getParameter(""input"");
+    // Sanitize and encode user input before outputting it to the response
+    String sanitizedInput = Encode.forHtml(userInput);
+    PrintWriter out = response.getWriter();
+    out.println(""<html>"");
+    out.println(""<body>"");
+    out.println(""<h1>User Input: "" + sanitizedInput + ""</h1>"");
+    out.println(""</body>"");
+    out.println(""</html>"");
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.IOException;
+    import java.io.PrintWriter;
+    public class XSSVulnerableCode {
+    public static void main(String[] args) {
+    String userInput = ""<script>alert('XSS attack!')</script>"";
+    // Improperly handling user input by directly printing it to the HTML response
+    PrintWriter out = new PrintWriter(System.out);
+    out.println(""<html>"");
+    out.println(""<body>"");
+    out.println(""User Input: "" + userInput); // Vulnerability: User input is directly printed without proper encoding
+    out.println(""</body>"");
+    out.println(""</html>"");
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Cross-Site Scripting (XSS)
+"    import java.util.Scanner;
+    public class BufferOverflowVulnerability {
+    public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print(""Enter a string: "");
+    String userInput = scanner.next();
+    char[] buffer = new char[10]; // Buffer with fixed size
+    userInput.getChars(0, userInput.length(), buffer, 0); // Copy user input to buffer
+    System.out.println(""Buffer content: "" + new String(buffer));
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Buffer Overflow
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    public class CommandInjectionSecure {
+    public static void main(String[] args) throws IOException {
+    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    System.out.print(""Enter a command to execute: "");
+    String command = reader.readLine();
+    // Separate the command and arguments using ProcessBuilder
+    ProcessBuilder processBuilder = new ProcessBuilder(command);
+    Process process = processBuilder.start();
+    BufferedReader inputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String line;
+    while ((line = inputReader.readLine()) != null) {
+    System.out.println(line);
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    public class Main {
+    public static void main(String[] args) {
+    Object obj = null;
+    System.out.println(obj.toString());
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: A NullPointerException can occur when trying to access or modify null object references in Java.
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    public class CommandInjectionVulnerability {
+    public static void main(String[] args) {
+    try {
+    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    System.out.print(""Enter a command to execute: "");
+    String command = reader.readLine();
+    Process process = Runtime.getRuntime().exec(""ping "" + command);
+    BufferedReader inputStreamReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String output;
+    while ((output = inputStreamReader.readLine()) != null) {
+    System.out.println(output);
+    }
+    } catch (IOException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Command Injection
+"public static DomainSocketAddress newSocketAddress() {
+        try {
+            File file;
+            do {
+                file = File.createTempFile(""NETTY"", ""UDS"");
+                if (!file.delete()) {
+                    throw new IOException(""failed to delete: "" + file);
+                }
+            } while (file.getAbsolutePath().length() > 128);
+            return new DomainSocketAddress(file);
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }",Classification: VULNERABLE. Vulnerability Type: CWE-378
+"To fix the Command Injection vulnerability in the provided Java code snippet, we need to sanitize and validate user input to prevent malicious commands from being executed. One way to do this is by using a whitelist approach where only certain predefined commands are allowed to be executed.
+
+Here's an example of how you can improve the code with proper security measures:
+
+```java
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class CommandInjectionSecure {
+
+    public static void main(String[] args) {
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            System.out.print(""Enter a command to execute: "");
+            String command = reader.readLine();
+
+            // Validate the command against a whitelist of allowed commands
+            if (isValidCommand(command)) {
+                Process process = Runtime.getRuntime().exec(command);
+
+                BufferedReader outputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                String line;
+
+                System.out.println(""Output:"");
+                while ((line = outputReader.readLine()) != null) {
+                    System.out.println(line);
+                }
+            } else {
+                System.out.println(""Invalid command. Only predefined commands are allowed."");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static boolean isValidCommand",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.sql.*;
+    public class SecureSQLQuery {
+    public static void main(String[] args) {
+    String userInput = ""'; DROP TABLE users; --"";
+    try {
+    Connection conn = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    // Use PreparedStatement to prevent SQL Injection
+    String query = ""SELECT * FROM users WHERE username=?"";
+    PreparedStatement statement = conn.prepareStatement(query);
+    statement.setString(1, userInput);
+    ResultSet resultSet = statement.executeQuery();
+    while (resultSet.next()) {
+    System.out.println(""User: "" + resultSet.getString(""username""));
+    }
+    conn.close();
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.util.Scanner;
+    public class BufferOverflowExample {
+    public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print(""Enter your name: "");
+    String name = scanner.nextLine();
+    char[] buffer = new char[10];
+    name.getChars(0, name.length(), buffer, 0);
+    System.out.println(""Hello, "" + new String(buffer));
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Buffer Overflow
+"    import java.io.IOException;
+    import java.io.PrintWriter;
+    import javax.servlet.http.HttpServlet;
+    import javax.servlet.http.HttpServletRequest;
+    import javax.servlet.http.HttpServletResponse;
+    public class VulnerableServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    String userInput = request.getParameter(""input"");
+    // Improperly handling user input by directly printing it back to the response
+    PrintWriter out = response.getWriter();
+    out.println(""<html>"");
+    out.println(""<body>"");
+    out.println(""<h1>User Input: "" + userInput + ""</h1>"");
+    out.println(""</body>"");
+    out.println(""</html>"");
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Cross-Site Scripting (XSS)
+"    import java.io.File;
+    import java.io.FileInputStream;
+    import java.io.IOException;
+    import java.util.Scanner;
+    public class PathTraversalExample {
+    public static void main(String[] args) throws IOException {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print(""Enter file name: "");
+    String fileName = scanner.nextLine();
+    File file = new File(""C:/data/"" + fileName);
+    FileInputStream fis = new FileInputStream(file);
+    int data;
+    while ((data = fis.read()) != -1) {
+    System.out.print((char) data);
+    }
+    fis.close();
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Path Traversal
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    public class SecureCommandExecution {
+    public static void main(String[] args) {
+    try {
+    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    System.out.print(""Enter a command to execute: "");
+    String command = reader.readLine();
+    ProcessBuilder processBuilder = new ProcessBuilder(command.split(""\\s+""));
+    Process process = processBuilder.start();
+    BufferedReader outputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String line;
+    while ((line = outputReader.readLine()) != null) {
+    System.out.println(line);
+    }
+    } catch (IOException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.IOException;
+    import java.io.PrintWriter;
+    import javax.servlet.ServletException;
+    import javax.servlet.http.HttpServlet;
+    import javax.servlet.http.HttpServletRequest;
+    import javax.servlet.http.HttpServletResponse;
+    public class XSSVulnerableServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    String userInput = request.getParameter(""input"");
+    response.setContentType(""text/html"");
+    PrintWriter out = response.getWriter();
+    out.println(""<html>"");
+    out.println(""<head><title>XSS Vulnerable Page</title></head>"");
+    out.println(""<body>"");
+    // Vulnerable code: User input is directly embedded in the HTML response without proper sanitization
+    out.println(""<h1>Hello "" + userInput + ""!</h1>"");
+    out.println(""</body>"");
+    out.println(""</html>"");
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Cross-Site Scripting (XSS)
+"    import java.io.File;
+    import java.io.IOException;
+    import java.nio.file.Files;
+    import java.util.Scanner;
+    public class PathTraversalVulnerability {
+    public static void main(String[] args) throws IOException {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print(""Enter file name: "");
+    String fileName = scanner.nextLine();
+    File file = new File(""/path/to/directory/"" + fileName);
+    if(file.exists()) {
+    byte[] fileData = Files.readAllBytes(file.toPath());
+    System.out.println(""File content: "" + new String(fileData));
+    } else {
+    System.out.println(""File not found"");
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Path Traversal
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    public class CommandInjectionExample {
+    public static void main(String[] args) {
+    try {
+    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    System.out.print(""Enter a command to execute: "");
+    String command = reader.readLine();
+    Runtime runtime = Runtime.getRuntime();
+    Process process = runtime.exec(""ping "" + command);
+    BufferedReader processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String line;
+    while ((line = processOutputReader.readLine()) != null) {
+    System.out.println(line);
+    }
+    } catch (IOException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Command Injection
+"To fix the Command Injection vulnerability in the provided Java code snippet, you should sanitize and validate user input before using it to execute system commands. One way to do this is to use a ProcessBuilder instead of directly calling `Runtime.getRuntime().exec()`.
+
+Here's an improved version of the code that addresses the security issue:
+
+```java
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class SecureCommandExecution {
+
+    public static void main(String[] args) {
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            System.out.print(""Enter a command to execute: "");
+            String userInput = reader.readLine();
+
+            // Sanitize and validate user input
+            if (!isValidInput(userInput)) {
+                System.out.println(""Invalid input. Command execution aborted."");
+                return;
+            }
+
+            // Build and start the process using ProcessBuilder
+            ProcessBuilder processBuilder = new ProcessBuilder(""ping"", userInput);
+            Process process = processBuilder.start();
+
+            // Read and display output from the process
+            BufferedReader inputStreamReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            while ((line = inputStreamReader.readLine()) != null) {
+                System.out.println(line);
+            }
+
+        } catch (",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    public class SecureCommandExecutionExample {
+    public static void main(String[] args) {
+    try {
+    BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+    System.out.print(""Enter a directory name: "");
+    String directory = br.readLine();
+    // Build the command using ProcessBuilder
+    ProcessBuilder processBuilder = new ProcessBuilder(""ls"", directory);
+    // Redirect error stream to output stream
+    processBuilder.redirectErrorStream(true);
+    // Start the process
+    Process process = processBuilder.start();
+    // Read the output of the command
+    BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String line;
+    while ((line = reader.readLine()) != null) {
+    System.out.println(line);
+    }
+    } catch (IOException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+public class ResourceExhaustion { public void loop() { while (true) { // Infinite loop } } },Classification: VULNERABLE. Vulnerability Type: CWE-400
+"    import java.io.*;
+    import javax.servlet.*;
+    import javax.servlet.http.*;
+    public class XSSVulnerableServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
+    response.setContentType(""text/html"");
+    PrintWriter out = response.getWriter();
+    String userInput = request.getParameter(""input"");
+    out.println(""<html>"");
+    out.println(""<head><title>XSS Vulnerable Page</title></head>"");
+    out.println(""<body>"");
+    out.println(""<h1>User Input: "" + userInput + ""</h1>""); // Vulnerability: User input is directly included in the HTML response
+    out.println(""</body>"");
+    out.println(""</html>"");
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Cross-Site Scripting (XSS)
+"    import java.io.*;
+    import java.util.zip.*;
+    public class MemoryIntensiveProcessor {
+    public void processLargeFile(File input) throws IOException {
+    // Loading entire file into memory
+    byte[] fileData = Files.readAllBytes(input.toPath());
+    // Process data...
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: CWE-770: Allocation of Resources Without Limits or Throttling
+"    import java.sql.*;
+    public class SQLInjectionVulnerability {
+    public static void main(String[] args) {
+    String userInput = ""'; DROP TABLE users; --""; // Malicious input
+    try {
+    Connection connection = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    Statement statement = connection.createStatement();
+    // Vulnerable query construction
+    String query = ""SELECT * FROM users WHERE username='"" + userInput + ""'"";
+    ResultSet resultSet = statement.executeQuery(query);
+    while (resultSet.next()) {
+    System.out.println(""Username: "" + resultSet.getString(""username""));
+    System.out.println(""Password: "" + resultSet.getString(""password""));
+    }
+    resultSet.close();
+    statement.close();
+    connection.close();
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: SQL Injection
+"    import java.util.*;
+    public class Main {
+    public static void main(String[] args) {
+    List<Object> list = new ArrayList<>();
+    list.add(""Hello World"");
+    list.add(123);
+    for (Object obj : list) {
+    if (obj instanceof String) {
+    String str = (String) obj;
+    System.out.println(str);
+    } else if (obj instanceof Integer) {
+    Integer integer = (Integer) obj;
+    System.out.println(integer.toString());
+    }
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    public class SecureCommandExecution {
+    public static void main(String[] args) throws IOException {
+    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    System.out.println(""Enter a command to execute:"");
+    String command = reader.readLine();
+    // Secure code: using ProcessBuilder for executing commands
+    ProcessBuilder processBuilder = new ProcessBuilder(command.split("" ""));
+    Process process = processBuilder.start();
+    BufferedReader inputStream = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String line;
+    while ((line = inputStream.readLine()) != null) {
+    System.out.println(line);
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.sql.Connection;
+    import java.sql.DriverManager;
+    import java.sql.PreparedStatement;
+    import java.sql.ResultSet;
+    import java.sql.SQLException;
+    public class SecureSQLInjection {
+    public static void main(String[] args) {
+    String userInput = ""'; DROP TABLE users; --""; // User input vulnerable to SQL injection
+    try {
+    Connection connection = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    // Use PreparedStatement with parameterized query
+    String query = ""SELECT * FROM users WHERE username=?"";
+    PreparedStatement statement = connection.prepareStatement(query);
+    statement.setString(1, userInput);
+    ResultSet resultSet = statement.executeQuery();
+    while (resultSet.next()) {
+    System.out.println(resultSet.getString(""username""));
+    }
+    resultSet.close();
+    statement.close();
+    connection.close();
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.sql.*;
+    public class SQLInjectionFixedExample {
+    public static void main(String[] args) {
+    String userInput = ""admin'; DROP TABLE users; --"";
+    try {
+    Connection conn = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""root"", ""password"");
+    String query = ""SELECT * FROM users WHERE username=?"";
+    PreparedStatement pstmt = conn.prepareStatement(query);
+    pstmt.setString(1, userInput);
+    ResultSet rs = pstmt.executeQuery();
+    while (rs.next()) {
+    System.out.println(""User: "" + rs.getString(""username""));
+    }
+    conn.close();
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.*;
+    import javax.servlet.*;
+    import javax.servlet.http.*;
+    import org.owasp.esapi.ESAPI;
+    public class XSSSafeServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    String userInput = request.getParameter(""input"");
+    PrintWriter out = response.getWriter();
+    out.println(""<html><body>"");
+    out.println(""<h1>User Input: "" + ESAPI.encoder().encodeForHTML(userInput) + ""</h1>""); // Encoding user input before embedding in HTML
+    out.println(""</body></html>"");
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.util.Scanner;
+    public class SecureBufferHandling {
+    public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print(""Enter a string: "");
+    String userInput = scanner.nextLine();
+    // Secure code - prevent buffer overflow vulnerability
+    int bufferSize = Math.min(userInput.length(), 10); // Limit buffer size to prevent overflow
+    char[] buffer = new char[bufferSize];
+    userInput.getChars(0, bufferSize, buffer, 0);
+    System.out.println(""Input successfully processed."");
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.sql.*;
+    public class SQLInjectionVulnerable {
+    public static void main(String[] args) {
+    String userInput = ""1 OR 1=1"";
+    String query = ""SELECT * FROM users WHERE id = "" + userInput;
+    try {
+    Connection connection = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    Statement statement = connection.createStatement();
+    ResultSet resultSet = statement.executeQuery(query);
+    while (resultSet.next()) {
+    System.out.println(""User ID: "" + resultSet.getInt(""id"") + "", Name: "" + resultSet.getString(""name""));
+    }
+    connection.close();
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: SQL Injection
+"To fix the Path Traversal vulnerability in the given Java code snippet, you can follow these secure coding practices:
+
+1. **Validate User Input**: Ensure that the user input (file name) is properly validated to prevent any malicious input. You can restrict the input to alphanumeric characters or a specific format.
+
+2. **Use Absolute Path**: Instead of concatenating user input directly to a base path, use an absolute path to specify the location of the file. This will prevent attackers from manipulating the path to access arbitrary files on the system.
+
+3. **Check File Existence**: Before attempting to read from the file, verify that the file actually exists at the specified path using `File.exists()` method.
+
+Here's an example of how you can modify the code to address these security concerns:
+
+```java
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Scanner;
+
+public class SecurePathTraversalExample {
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        
+        System.out.print(""Enter file name: "");
+        String fileName = scanner.nextLine();
+
+        // Validate user input
+        if (!fileName.matches(""[a-zA-Z0-9_]+\\.txt"")) {
+            System",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    public class CommandInjectionVulnerability {
+    public static void main(String[] args) {
+    try {
+    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    System.out.print(""Enter a directory name to list its contents: "");
+    String directory = reader.readLine();
+    // Vulnerable code: directly executing user input as a command
+    Process process = Runtime.getRuntime().exec(""ls "" + directory);
+    BufferedReader inputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String line;
+    while ((line = inputReader.readLine()) != null) {
+    System.out.println(line);
+    }
+    } catch (IOException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Command Injection
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    public class CommandInjectionVulnerability {
+    public static void main(String[] args) throws IOException {
+    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    System.out.print(""Enter a command to execute: "");
+    String command = reader.readLine();
+    Process process = Runtime.getRuntime().exec(command);
+    BufferedReader processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String outputLine;
+    while ((outputLine = processOutputReader.readLine()) != null) {
+    System.out.println(outputLine);
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Command Injection
+"    import java.sql.*;
+    public class VulnerableCode {
+    public static void main(String[] args) {
+    String userInput = ""'; DROP TABLE users; --""; // Malicious user input
+    try {
+    Connection conn = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    Statement stmt = conn.createStatement();
+    String query = ""SELECT * FROM users WHERE username = '"" + userInput + ""'"";
+    ResultSet rs = stmt.executeQuery(query);
+    while (rs.next()) {
+    System.out.println(rs.getString(""username""));
+    }
+    conn.close();
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: SQL Injection
+"    import java.util.Scanner;
+    public class SecureBuffer {
+    public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print(""Enter your name: "");
+    String name = scanner.nextLine();
+    // Allocate a buffer with a dynamic size based on the input length
+    byte[] buffer = new byte[Math.min(name.length(), 10)];
+    // Copy bytes from the input string to the buffer
+    System.arraycopy(name.getBytes(), 0, buffer, 0, buffer.length);
+    System.out.println(""Hello, "" + new String(buffer));
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.util.Scanner;
+    public class SecureBufferExample {
+    public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print(""Enter a string: "");
+    String input = scanner.nextLine(); // Use nextLine() to read the entire line
+    // Creating a fixed-size character array with a size of 10
+    char[] buffer = new char[10];
+    // Copying user input into the buffer with proper length validation
+    if (input.length() <= buffer.length) {
+    input.getChars(0, input.length(), buffer, 0);
+    System.out.println(""Buffer content: "" + new String(buffer));
+    } else {
+    System.out.println(""Input exceeds buffer size. Please enter a shorter string."");
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.*;
+    public class SecureXSSDemo {
+    public static void main(String[] args) {
+    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    try {
+    System.out.print(""Enter your name: "");
+    String userName = reader.readLine();
+    // Sanitize and escape user input to prevent XSS
+    userName = sanitizeInput(userName);
+    System.out.println(""Hello, "" + userName + ""!""); // Safe output
+    } catch (IOException e) {
+    System.err.println(""Error reading input!"");
+    }
+    }
+    // Function to sanitize and escape user input to prevent XSS
+    private static String sanitizeInput(String input) {
+    return input.replaceAll(""<"", ""&lt;"")
+    .replaceAll("">"", ""&gt;"")
+    .replaceAll(""&"", ""&amp;"")
+    .replaceAll(""\"""", ""&quot;"")
+    .replaceAll(""'"", ""&#39;"");
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.sql.Connection;
+    import java.sql.DriverManager;
+    import java.sql.PreparedStatement;
+    import java.sql.ResultSet;
+    import java.sql.SQLException;
+    public class SecureSQLExample {
+    public static void main(String[] args) {
+    String userInput = ""'; DROP TABLE users; --"";
+    try {
+    Connection connection = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    String query = ""SELECT * FROM users WHERE username = ?"";
+    PreparedStatement statement = connection.prepareStatement(query);
+    statement.setString(1, userInput);
+    ResultSet resultSet = statement.executeQuery();
+    while (resultSet.next()) {
+    System.out.println(resultSet.getString(""username""));
+    }
+    resultSet.close();
+    statement.close();
+    connection.close();
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.*;
+    import javax.servlet.*;
+    import javax.servlet.http.*;
+    import org.owasp.esapi.ESAPI;
+    import org.owasp.esapi.codecs.HTMLEntityCodec;
+    public class SecureServlet extends HttpServlet {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    String userInput = request.getParameter(""input"");
+    PrintWriter out = response.getWriter();
+    out.println(""<html>"");
+    out.println(""<body>"");
+    HTMLEntityCodec codec = new HTMLEntityCodec();
+    String encodedUserInput = codec.encodeForHTML(userInput);
+    out.println(""<h1>Hello, "" + encodedUserInput + ""</h1>""); // Fixed secure code
+    out.println(""</body>"");
+    out.println(""</html>"");
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.*;
+    public class Deserializer {
+    public void deserializeData(InputStream in) {
+    try (ObjectInputStream ois = new ObjectInputStream(in)) {
+    Object obj = ois.readObject();
+    System.out.println(obj);
+    } catch (Exception e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: CWE-502: Deserialization of Untrusted Data
+"    import java.sql.*;
+    public class SQLInjectionVulnerable {
+    public static void main(String[] args) {
+    try {
+    // Simulating user input being used in a SQL query
+    String userInput = ""'; DROP TABLE users; --"";
+    // Creating a SQL query by concatenating user input
+    String query = ""SELECT * FROM users WHERE username = '"" + userInput + ""'"";
+    // Connecting to the database and executing the query
+    Connection connection = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    Statement statement = connection.createStatement();
+    ResultSet resultSet = statement.executeQuery(query);
+    // Processing the results
+    while (resultSet.next()) {
+    System.out.println(resultSet.getString(""username""));
+    System.out.println(resultSet.getString(""password""));
+    }
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: SQL Injection
+"    import java.io.File;
+    import java.io.FileInputStream;
+    import java.io.IOException;
+    import java.util.Scanner;
+    public class PathTraversalVulnerability {
+    public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print(""Enter file name: "");
+    String fileName = scanner.nextLine();
+    File file = new File(""/path/to/files/"" + fileName);
+    try (FileInputStream fis = new FileInputStream(file)) {
+    int content;
+    while ((content = fis.read()) != -1) {
+    System.out.print((char) content);
+    }
+    } catch (IOException e) {
+    System.err.println(""Error reading file: "" + e.getMessage());
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Path Traversal
+"System.out.println(""Debug: "" + user.getCreditCardNumber());",Classification: VULNERABLE. Vulnerability Type: CWE-489: Active Debug Code
+"    import java.sql.*;
+    public class VulnerableCode {
+    public static void main(String[] args) {
+    try {
+    // Simulating user input (which should not be done this way)
+    String userInput = ""'; DROP TABLE users; --"";
+    // Creating a SQL query using user input without proper validation
+    String query = ""SELECT * FROM users WHERE username = '"" + userInput + ""'"";
+    // Establishing a database connection and executing the query
+    Connection conn = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    Statement stmt = conn.createStatement();
+    ResultSet rs = stmt.executeQuery(query);
+    // Processing the results
+    while (rs.next()) {
+    System.out.println(rs.getString(""username""));
+    // Do something with the retrieved data
+    }
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: SQL Injection
+"To fix the Path Traversal vulnerability in the provided Java code snippet, you should validate and sanitize the input file name to prevent malicious input that could lead to directory traversal attacks. Here is an improved version of the code with security measures implemented:
+
+```java
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Scanner;
+
+public class SecurePathTraversal {
+
+    public static void main(String[] args) throws IOException {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print(""Enter file name: "");
+        String fileName = scanner.nextLine();
+
+        // Validate and sanitize the file name to prevent directory traversal attacks
+        if (!isValidFileName(fileName)) {
+            System.out.println(""Invalid file name"");
+            return;
+        }
+
+        File file = new File(""C:/files/"" + fileName);
+
+        if (file.exists()) {
+            byte[] fileContent = Files.readAllBytes(file.toPath());
+            System.out.println(new String(fileContent));
+        } else {
+            System.out.println(""File not found"");
+        }
+
+        scanner.close();
+    }
+
+    // Method to validate the input file name
+    private static boolean isValidFileName(String fileName) {
+        // Implement your validation logic here, e.g., disallow",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.*;
+    import javax.servlet.*;
+    import javax.servlet.http.*;
+    public class XSSVulnerableServlet extends HttpServlet {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    String userInput = request.getParameter(""input"");
+    String output = ""<h1>Welcome "" + userInput + ""!</h1>"";
+    response.setContentType(""text/html"");
+    PrintWriter out = response.getWriter();
+    out.println(output);
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Cross-Site Scripting (XSS)
+"    import java.io.*;
+    import javax.servlet.*;
+    import javax.servlet.http.*;
+    public class XSSVulnerableServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    String userInput = request.getParameter(""input"");
+    String output = ""Hello, "" + userInput + ""!"";
+    response.setContentType(""text/html"");
+    PrintWriter out = response.getWriter();
+    out.println(""<html>"");
+    out.println(""<head><title>XSS Vulnerable Page</title></head>"");
+    out.println(""<body>"");
+    out.println(""<h1>"" + output + ""</h1>"");
+    out.println(""</body>"");
+    out.println(""</html>"");
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Cross-Site Scripting (XSS)
+"    import java.io.IOException;
+    import javax.servlet.http.HttpServletRequest;
+    import javax.servlet.http.HttpServletResponse;
+    import javax.servlet.ServletException;
+    import javax.servlet.http.HttpServlet;
+    import org.owasp.encoder.Encode;
+    public class XSSFixedServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    String userInput = request.getParameter(""input"");
+    String safeOutput = ""<p>"" + Encode.forHtml(userInput) + ""</p>""; // Properly encode user input
+    response.setContentType(""text/html"");
+    response.getWriter().println(safeOutput);
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.sql.*;
+    public class SQLInjectionVulnerability {
+    public static void main(String[] args) {
+    String userInput = ""'; DROP TABLE users; --""; // Malicious input for SQL injection
+    try {
+    Connection connection = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    Statement statement = connection.createStatement();
+    String query = ""SELECT * FROM users WHERE username = '"" + userInput + ""'"";
+    ResultSet resultSet = statement.executeQuery(query);
+    while(resultSet.next()) {
+    System.out.println(resultSet.getString(""username""));
+    }
+    connection.close();
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: SQL Injection
+"    import java.io.IOException;
+    import java.io.PrintWriter;
+    import javax.servlet.http.HttpServlet;
+    import javax.servlet.http.HttpServletRequest;
+    import javax.servlet.http.HttpServletResponse;
+    public class XSSVulnerableServlet extends HttpServlet {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    String userInput = request.getParameter(""input"");
+    response.setContentType(""text/html"");
+    PrintWriter out = response.getWriter();
+    // Vulnerable code: directly outputting user input without proper sanitization
+    out.println(""<html>"");
+    out.println(""<head><title>XSS Vulnerable Page</title></head>"");
+    out.println(""<body>"");
+    out.println(""<h1>Hello, "" + userInput + ""</h1>"");
+    out.println(""</body>"");
+    out.println(""</html>"");
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Cross-Site Scripting (XSS)
+"    import java.io.IOException;
+    import java.io.PrintWriter;
+    import javax.servlet.http.HttpServlet;
+    import javax.servlet.http.HttpServletRequest;
+    import javax.servlet.http.HttpServletResponse;
+    public class XSSVulnerableServlet extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    String userInput = request.getParameter(""input"");
+    PrintWriter out = response.getWriter();
+    out.println(""<html>"");
+    out.println(""<body>"");
+    out.println(""<h1>Hello, "" + userInput + ""</h1>""); // Vulnerable line
+    out.println(""</body>"");
+    out.println(""</html>"");
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Cross-Site Scripting (XSS)
+"private boolean processRemainingHeader() throws IOException {
+        // Ignore the 2 bytes already read. 4 for the mask
+        int headerLength;
+        if (isMasked()) {
+            headerLength = 4;
+        } else {
+            headerLength = 0;
+        }
+        // Add additional bytes depending on length
+        if (payloadLength == 126) {
+            headerLength += 2;
+        } else if (payloadLength == 127) {
+            headerLength += 8;
+        }
+        if (inputBuffer.remaining() < headerLength) {
+            return false;
+        }
+        // Calculate new payload length if necessary
+        if (payloadLength == 126) {
+            payloadLength = byteArrayToLong(inputBuffer.array(),
+                    inputBuffer.arrayOffset() + inputBuffer.position(), 2);
+            inputBuffer.position(inputBuffer.position() + 2);
+        } else if (payloadLength == 127) {
+            payloadLength = byteArrayToLong(inputBuffer.array(),
+                    inputBuffer.arrayOffset() + inputBuffer.position(), 8);
+            inputBuffer.position(inputBuffer.position() + 8);
+        }
+        if (Util.isControl(opCode)) {
+            if (payloadLength > 125) {
+                throw new WsIOException(new CloseReason(
+                        CloseCodes.PROTOCOL_ERROR,
+                        sm.getString(""wsFrame.controlPayloadTooBig"", Long.valueOf(payloadLength))));
+            }
+            if (!fin) {
+                throw new WsIOException(new CloseReason(
+                        CloseCodes.PROTOCOL_ERROR,
+                        sm.getString(""wsFrame.controlNoFin"")));
+            }
+        }
+        if (isMasked()) {
+            inputBuffer.get(mask, 0, 4);
+        }
+        state = State.DATA;
+        return true;
+    }",Classification: VULNERABLE. Vulnerability Type: CWE-835
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    public class CommandInjectionExample {
+    public static void main(String[] args) {
+    try {
+    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    System.out.print(""Enter a command to execute: "");
+    String command = reader.readLine();
+    // Vulnerability: User input is directly passed to the command line
+    Process process = Runtime.getRuntime().exec(""ping "" + command);
+    BufferedReader inputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String inputLine;
+    while ((inputLine = inputReader.readLine()) != null) {
+    System.out.println(inputLine);
+    }
+    } catch (IOException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Command Injection
+"    import java.sql.*;
+    public class VulnerableCode {
+    public static void main(String[] args) {
+    String userInput = args[0]; // User input from command line argument
+    try {
+    Connection conn = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    Statement stmt = conn.createStatement();
+    String query = ""SELECT * FROM users WHERE username='"" + userInput + ""'"";
+    ResultSet rs = stmt.executeQuery(query);
+    while (rs.next()) {
+    System.out.println(""User ID: "" + rs.getInt(""id"") + "", Username: "" + rs.getString(""username""));
+    }
+    conn.close();
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: SQL Injection
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    public class CommandInjectionExample {
+    public static void main(String[] args) {
+    try {
+    BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+    System.out.print(""Enter a file name to display its content: "");
+    String fileName = br.readLine();
+    String command = ""cat "" + fileName; // Vulnerable code
+    Process process = Runtime.getRuntime().exec(command);
+    BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String line;
+    while ((line = reader.readLine()) != null) {
+    System.out.println(line);
+    }
+    } catch (IOException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Command Injection
+"    import org.owasp.encoder.Encode;
+    public class XSSSecureCode {
+    public static void main(String[] args) {
+    // Simulating user input from a form field
+    String userInput = ""<script>alert('XSS Vulnerability')</script>"";
+    // Encoding user input to prevent XSS attacks
+    String safeUserInput = Encode.forHtml(userInput);
+    // Outputting the safe user input
+    String output = ""<div>"" + safeUserInput + ""</div>"";
+    System.out.println(output);
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.*;
+    import javax.servlet.*;
+    import javax.servlet.http.*;
+    import org.owasp.encoder.Encode;
+    public class SecureServlet extends HttpServlet {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    String userInput = request.getParameter(""input"");
+    String output = ""<p>User input: "" + Encode.forHtml(userInput) + ""</p>"";
+    response.setContentType(""text/html"");
+    PrintWriter out = response.getWriter();
+    out.println(output);
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    import java.util.ArrayList;
+    import java.util.List;
+    public class SecureCommandInjectionExample {
+    public static void main(String[] args) throws IOException {
+    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    System.out.print(""Enter a website to ping: "");
+    String website = reader.readLine();
+    List<String> command = new ArrayList<>();
+    command.add(""ping"");
+    command.add(""-c"");
+    command.add(""3"");
+    command.add(website);
+    ProcessBuilder processBuilder = new ProcessBuilder(command);
+    // Set up the working directory for the process (optional)
+    // processBuilder.directory(new File(""/path/to/working/directory""));
+    Process process = processBuilder.start();
+    BufferedReader inputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String line;
+    while ((line = inputReader.readLine()) != null) {
+    System.out.println(line);
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"To fix the Command Injection vulnerability in the provided Java code snippet, you should not directly execute user-provided input as a command. Instead, you should validate and sanitize the input to prevent malicious commands from being executed.
+
+Here is an example of how you can improve the code by using a safer approach:
+
+```java
+import java.io.*;
+
+public class SecureCommandExecutionExample {
+    public static void main(String[] args) {
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            System.out.print(""Enter a command to execute: "");
+            String userInput = reader.readLine();
+            
+            // Validate and sanitize user input
+            if (!isValidCommand(userInput)) {
+                System.out.println(""Invalid command"");
+                return;
+            }
+            
+            ProcessBuilder processBuilder = new ProcessBuilder();
+            processBuilder.command(""sh"", ""-c"", userInput); // Execute the command using a shell
+            
+            Process process = processBuilder.start();
+            
+            BufferedReader inputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            
+            while ((line = inputReader.readLine()) != null) {
+                System.out.println(line);
+            }
+            
+            process.waitFor();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.IOException;
+    import java.io.PrintWriter;
+    import javax.servlet.http.HttpServlet;
+    import javax.servlet.http.HttpServletRequest;
+    import javax.servlet.http.HttpServletResponse;
+    import org.owasp.encoder.Encode;
+    public class SecureServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    String userInput = request.getParameter(""input"");
+    String encodedInput = Encode.forHtml(userInput);
+    PrintWriter out = response.getWriter();
+    out.println(""<html>"");
+    out.println(""<body>"");
+    out.println(""<h1>User Input: "" + encodedInput + ""</h1>"");
+    out.println(""</body>"");
+    out.println(""</html>"");
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    public class CommandInjectionVulnerable {
+    public static void main(String[] args) {
+    try {
+    // Get user input for the command to execute
+    System.out.print(""Enter the command to execute: "");
+    BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+    String command = br.readLine();
+    // Execute the user-input command using Runtime.exec()
+    Process process = Runtime.getRuntime().exec(command);
+    // Read and display the output of the command
+    BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String line;
+    while ((line = reader.readLine()) != null) {
+    System.out.println(line);
+    }
+    } catch (IOException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Command Injection
+"    import java.sql.*;
+    public class SQLInjectionFixedExample {
+    public static void main(String[] args) {
+    try {
+    String userInput = ""'; DROP TABLE users; --""; // User input with malicious SQL injection
+    Connection connection = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    PreparedStatement preparedStatement = connection.prepareStatement(""SELECT * FROM users WHERE username = ?"");
+    preparedStatement.setString(1, userInput);
+    ResultSet resultSet = preparedStatement.executeQuery();
+    while (resultSet.next()) {
+    System.out.println(resultSet.getString(""username""));
+    }
+    resultSet.close();
+    preparedStatement.close();
+    connection.close();
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.sql.*;
+    public class SecureSQLInjectionCode {
+    public static void main(String[] args) {
+    String userInput = ""'; DROP TABLE users; --"";
+    try {
+    Connection conn = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    String query = ""SELECT * FROM users WHERE username=?"";
+    PreparedStatement pstmt = conn.prepareStatement(query);
+    pstmt.setString(1, userInput);
+    ResultSet rs = pstmt.executeQuery();
+    while (rs.next()) {
+    System.out.println(rs.getString(""username""));
+    }
+    conn.close();
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"To fix the Path Traversal vulnerability in the provided Java code, you should validate and sanitize the input file name to prevent directory traversal attacks. Here's an improved version of the code that addresses this issue:
+
+```java
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Scanner;
+
+public class SecurePathTraversal {
+
+    private static final String BASE_PATH = ""/path/to/directory/"";
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print(""Enter file name: "");
+        String fileName = scanner.next();
+
+        if (isValidFileName(fileName)) {
+            try {
+                File file = new File(BASE_PATH + fileName);
+                if (file.exists() && file.isFile()) {
+                    FileInputStream fis = new FileInputStream(file);
+                    int content;
+                    while ((content = fis.read()) != -1) {
+                        System.out.print((char) content);
+                    }
+                    fis.close();
+                } else {
+                    System.out.println(""Invalid file or file not found."");
+                }
+            } catch (IOException e) {
+                System.out.println(""Error reading file."");
+            }
+        } else {
+            System.out.println(""Invalid file name."");
+        }
+    }
+
+    private static",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"To secure the code against Insecure Deserialization vulnerabilities, you can implement the following measures:
+
+1. **Use a whitelist approach**: Only allow deserialization of known and trusted classes. This can be achieved by creating a list of allowed classes that can be deserialized.
+
+2. **Validate input**: Ensure that the serialized data is coming from a trusted source and has not been tampered with. One way to do this is by using digital signatures or checksums to verify the integrity of the serialized data.
+
+3. **Implement input validation**: Validate the serialized data before deserializing it. This can include checking for unexpected or malicious content in the serialized object.
+
+Here is an example of how you can modify the code to implement these security measures:
+
+```java
+import java.io.*;
+import java.util.Base64;
+
+public class SecureDeserializationExample {
+
+    public static void main(String[] args) {
+        String userInput = ""eyJpZCI6MX0=""; // User input representing a serialized object
+
+        try {
+            byte[] data = Base64.getDecoder().decode(userInput);
+            ByteArrayInputStream bis = new ByteArrayInputStream(data);
+            ObjectInputStream ois = new ObjectInputStream(bis) {
+                @Override
+                protected Class<?> resolveClass(ObjectStream",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"To fix the Path Traversal vulnerability in the provided Java code snippet, we need to ensure that the user input for the file name does not allow directory traversal attacks. One way to prevent this is by validating the file name input against a whitelist of allowed characters or patterns.
+
+Here is an improved version of the code with added security measures:
+
+```java
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Scanner;
+
+public class SecurePathTraversal {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print(""Enter a file name: "");
+        String fileName = scanner.nextLine();
+
+        if (isValidFileName(fileName)) {
+            File file = new File(""/path/to/directory/"" + fileName);
+
+            if (file.exists()) {
+                try {
+                    byte[] fileContent = Files.readAllBytes(file.toPath());
+                    System.out.println(""File content: "" + new String(fileContent));
+                } catch (IOException e) {
+                    System.err.println(""Error reading file."");
+                }
+            } else {
+                System.out.println(""File does not exist."");
+            }
+        } else {
+            System.out.println(""Invalid file name."");
+        }
+
+        scanner.close();",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.sql.*;
+    public class SQLInjectionVulnerable {
+    public static void main(String[] args) {
+    try {
+    String userInput = ""'; DROP TABLE users; --"";
+    // Vulnerable code: directly concatenating user input into the SQL query
+    String query = ""SELECT * FROM users WHERE username = '"" + userInput + ""'"";
+    Connection connection = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    Statement statement = connection.createStatement();
+    ResultSet resultSet = statement.executeQuery(query);
+    while (resultSet.next()) {
+    System.out.println(resultSet.getString(""username""));
+    }
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: SQL Injection
+"    import java.sql.*;
+    public class Main {
+    public static void main(String[] args) {
+    String username = ""username"";
+    String password = ""password"";
+    try {
+    Class.forName(""com.mysql.jdbc.Driver"");
+    Connection con = DriverManager.getConnection(""jdbc:mysql://localhost:3306/testDB"", username, password);
+    // PreparedStatement is used to prevent SQL injection
+    String query = ""SELECT * FROM users WHERE username=? AND password=?"";
+    PreparedStatement pstmt = con.prepareStatement(query);
+    pstmt.setString(1, args[0]);
+    pstmt.setString(2, args[1]);
+    ResultSet rs = pstmt.executeQuery();
+    while(rs.next()) {
+    System.out.println(rs.getString(1));
+    }
+    con.close();
+    } catch (Exception e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    public class CommandInjectionVulnerability {
+    public static void main(String[] args) {
+    try {
+    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    System.out.print(""Enter the name of the file to display: "");
+    String fileName = reader.readLine();
+    // Vulnerability: User input is directly passed to execute the system command
+    String command = ""cat "" + fileName;
+    Process process = Runtime.getRuntime().exec(command);
+    BufferedReader outputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String line;
+    while ((line = outputReader.readLine()) != null) {
+    System.out.println(line);
+    }
+    } catch (IOException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Command Injection
+"<dependency>
+    <groupId>org.owasp.encoder</groupId>
+    <artifactId>encoder</artifactId>
+    <version>1.2.2</version>
+</dependency>",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    public class CommandInjectionExample {
+    public static void main(String[] args) {
+    try {
+    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    System.out.print(""Enter a command to execute: "");
+    String command = reader.readLine();
+    Process process = Runtime.getRuntime().exec(""ping "" + command);
+    BufferedReader inputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String line;
+    while ((line = inputReader.readLine()) != null) {
+    System.out.println(line);
+    }
+    } catch (IOException e) {
+    System.err.println(""An error occurred: "" + e.getMessage());
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Command Injection
+"public Column<T, V> setCaption(String caption) {
+            Objects.requireNonNull(caption, ""Header caption can't be null"");
+            caption = Jsoup.parse(caption).text();
+            if (caption.equals(getState(false).caption)) {
+                return this;
+            }
+            getState().caption = caption;
+
+            HeaderRow row = getGrid().getDefaultHeaderRow();
+            if (row != null) {
+                row.getCell(this).setText(caption);
+            }
+
+            return this;
+        }",Classification: NOT_VULNERABLE. Vulnerability Type: CWE-79
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    public class CommandInjectionExample {
+    public static void main(String[] args) {
+    try {
+    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    System.out.print(""Enter a command to execute: "");
+    String userInput = reader.readLine();
+    Process process = Runtime.getRuntime().exec(""ping "" + userInput);
+    BufferedReader inputStreamReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String line;
+    while ((line = inputStreamReader.readLine()) != null) {
+    System.out.println(line);
+    }
+    } catch (IOException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Command Injection
+"    import java.io.File;
+    import java.io.FileInputStream;
+    import java.io.IOException;
+    public class FileReadExample {
+    public static void main(String[] args) {
+    String userInput = args[0];
+    String filePath = ""/path/to/files/"" + userInput; // Vulnerability: User input directly concatenated with file path
+    try {
+    File file = new File(filePath);
+    FileInputStream fis = new FileInputStream(file);
+    int content;
+    while ((content = fis.read()) != -1) {
+    System.out.print((char) content);
+    }
+    fis.close();
+    } catch (IOException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Path Traversal
+"/*
+
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+ *
+
+ * Copyright (c) 1997-2016 Oracle and/or its affiliates. All rights reserved.
+
+ *
+
+ * The contents of this file are subject to the terms of either the GNU
+
+ * General Public License Version 2 only (""GPL"") or the Common Development
+
+ * and Distribution License(""CDDL"") (collectively, the ""License"").  You
+
+ * may not use this file except in compliance with the License.  You can
+
+ * obtain a copy of the License at
+
+ * https://glassfish.java.net/public/CDDL+GPL_1_1.html
+
+ * or packager/legal/LICENSE.txt.  See the License for the specific
+
+ * language governing permissions and limitations under the License.
+
+ *
+
+ * When distributing the software, include this License Header Notice in each
+
+ * file and include the License file at packager/legal/LICENSE.txt.
+
+ *
+
+ * GPL Classpath Exception:
+
+ * Oracle designates this particular file as subject to the ""Classpath""
+
+ * exception as provided by Oracle in the GPL Version 2 section of the License
+
+ * file that accompanied this code.
+
+ *
+
+ * Modifications:
+
+ * If applicable, add the following below the License Header, with the fields
+
+ * enclosed by brackets [] replaced by your own identifying information:
+
+ * ""Portions Copyright [year] [name of copyright owner]""
+
+ *
+
+ * Contributor(s):
+
+ * If you wish your version of this file to be governed by only the CDDL or
+
+ * only the GPL Version 2, indicate your decision by adding ""[Contributor]
+
+ * elects to include this software in this distribution under the [CDDL or GPL
+
+ * Version 2] license.""  If you don't indicate a single choice of license, a
+
+ * recipient has the option to distribute your version of this file under
+
+ * either the CDDL, the GPL Version 2 or to extend the choice of license to
+
+ * its licensees as provided above.  However, if you add GPL Version 2 code
+
+ * and therefore, elected the GPL Version 2 license, then the option applies
+
+ * only if the new code is made subject to such option by the copyright
+
+ * holder.
+
+ */
+
+ com.sun.faces.context;
+
+
+
+i",Classification: NOT_VULNERABLE. Vulnerability Type: None
+"    import java.sql.*;
+    public class SQLInjectionExample {
+    public static void main(String[] args) {
+    String userInput = ""'; DROP TABLE users; --"";
+    String query = ""SELECT * FROM users WHERE username = '"" + userInput + ""'"";
+    try {
+    Connection conn = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    Statement stmt = conn.createStatement();
+    ResultSet rs = stmt.executeQuery(query);
+    while (rs.next()) {
+    System.out.println(rs.getString(""username""));
+    }
+    conn.close();
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: SQL Injection
+"    import java.sql.*;
+    public class SQLInjectionVulnerableCode {
+    public static void main(String[] args) {
+    String userInput = ""'; DROP TABLE users; --"";
+    try {
+    Connection conn = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    Statement stmt = conn.createStatement();
+    String query = ""SELECT * FROM users WHERE username = '"" + userInput + ""'"";
+    ResultSet rs = stmt.executeQuery(query);
+    while (rs.next()) {
+    System.out.println(rs.getString(""username""));
+    }
+    conn.close();
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: SQL Injection
+"    import java.sql.*;
+    public class SQLInjectionVulnerability {
+    public static void main(String[] args) {
+    String userInput = ""'; DROP TABLE users; --""; // User input with malicious SQL injection payload
+    try {
+    Connection connection = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    Statement statement = connection.createStatement();
+    // Vulnerable code - concatenating user input directly into the SQL query
+    String query = ""SELECT * FROM users WHERE username = '"" + userInput + ""'"";
+    ResultSet resultSet = statement.executeQuery(query);
+    while (resultSet.next()) {
+    System.out.println(""Username: "" + resultSet.getString(""username""));
+    System.out.println(""Email: "" + resultSet.getString(""email""));
+    }
+    connection.close();
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: SQL Injection
+"    import java.util.Scanner;
+    public class BufferOverflowVulnerability {
+    public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print(""Enter your name: "");
+    String input = scanner.nextLine();
+    // Vulnerable code - potential buffer overflow
+    char[] buffer = new char[10];
+    input.getChars(0, input.length(), buffer, 0);
+    System.out.println(""Hello, "" + new String(buffer));
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Buffer Overflow
+"String userInput = ""admin'; DROP TABLE users; --"";
+
+String query = ""SELECT * FROM users WHERE username = ?"";
+
+// Execute the query using JDBC
+PreparedStatement statement = connection.prepareStatement(query);
+statement.setString(1, userInput);
+ResultSet resultSet = statement.executeQuery();",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.*;
+    import javax.servlet.*;
+    import javax.servlet.http.*;
+    public class XSSVulnerableServlet extends HttpServlet {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    String userInput = request.getParameter(""input"");
+    String output = ""<p>User input: "" + userInput + ""</p>"";
+    response.setContentType(""text/html"");
+    PrintWriter out = response.getWriter();
+    out.println(output);
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Cross-Site Scripting (XSS)
+"To prevent buffer overflow vulnerabilities in the given Java code, you can implement the following secure coding practices:
+
+1. Use `Scanner#nextLine` to read the input and validate its length:
+   - Check the length of the input before copying it to a buffer to prevent buffer overflow.
+   - Limit the input size to fit within the buffer size.
+
+2. Use `String#substring` or `String#toCharArray` to copy a safe portion of the input:
+   - Instead of directly copying characters from the input string, extract a safe substring or convert it to a character array with a safe length.
+
+Here's an updated version of your code with these security measures implemented:
+
+```java
+import java.util.Scanner;
+
+public class SecureBufferHandling {
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print(""Enter your name: "");
+        String name = scanner.nextLine();
+
+        // Validate input length to prevent buffer overflow
+        if (name.length() > 10) {
+            name = name.substring(0, 10); // Limiting input size to fit within buffer
+        }
+
+        char[] buffer = new char[name.length()];
+        name.getChars(0, name.length(),",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.*;
+    import javax.servlet.*;
+    import javax.servlet.http.*;
+    import org.owasp.esapi.ESAPI;
+    import org.owasp.esapi.Encoder;
+    public class XSSSecureServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    String userInput = request.getParameter(""input"");
+    Encoder encoder = ESAPI.encoder();
+    String safeUserInput = encoder.encodeForHTML(userInput);
+    String responseMessage = ""Hello, "" + safeUserInput + ""!"";
+    response.setContentType(""text/html"");
+    PrintWriter out = response.getWriter();
+    out.println(""<html>"");
+    out.println(""<body>"");
+    out.println(""<h1>"" + responseMessage + ""</h1>"");
+    out.println(""</body>"");
+    out.println(""</html>"");
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    public class CommandInjectionSecure {
+    public static void main(String[] args) throws IOException {
+    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    System.out.print(""Enter a command to execute: "");
+    String command = reader.readLine();
+    // Split the command string into individual arguments
+    String[] commandArgs = { ""ping"", command };
+    // Construct the process with proper security measures
+    ProcessBuilder processBuilder = new ProcessBuilder(commandArgs);
+    // Redirect error stream to output stream
+    processBuilder.redirectErrorStream(true);
+    Process process = processBuilder.start();
+    BufferedReader inputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String line;
+    while ((line = inputReader.readLine()) != null) {
+    System.out.println(line);
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.*;
+    import javax.servlet.*;
+    import javax.servlet.http.*;
+    import org.owasp.encoder.Encode;
+    public class XSSFixedServlet extends HttpServlet {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    String userInput = request.getParameter(""input"");
+    PrintWriter out = response.getWriter();
+    out.println(""<html>"");
+    out.println(""<body>"");
+    out.println(""User input: "" + Encode.forHtml(userInput)); // Encoding user input for HTML context
+    out.println(""</body>"");
+    out.println(""</html>"");
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.sql.*;
+    public class VulnerableSQLInjection {
+    public static void main(String[] args) {
+    try {
+    String userInput = ""admin'; DROP TABLE users; --""; // Malicious input
+    // Connect to the database
+    Connection conn = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    // Create a SQL statement with the user input concatenated directly into the query
+    Statement stmt = conn.createStatement();
+    String query = ""SELECT * FROM users WHERE username='"" + userInput + ""'"";
+    ResultSet rs = stmt.executeQuery(query);
+    // Process the result set
+    while (rs.next()) {
+    System.out.println(""Username: "" + rs.getString(""username""));
+    System.out.println(""Password: "" + rs.getString(""password""));
+    }
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: SQL Injection
+"    import java.io.IOException;
+    import java.io.PrintWriter;
+    import org.apache.commons.text.StringEscapeUtils; // Import Apache Commons Text library for HTML escaping
+    import javax.servlet.http.HttpServlet;
+    import javax.servlet.http.HttpServletRequest;
+    import javax.servlet.http.HttpServletResponse;
+    public class XSSFixedServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    String userInput = request.getParameter(""input"");
+    response.setContentType(""text/html"");
+    PrintWriter out = response.getWriter();
+    out.println(""<html>"");
+    out.println(""<head><title>XSS Fixed Page</title></head>"");
+    out.println(""<body>"");
+    // Properly sanitize and encode user input before including it in the HTML response
+    out.println(""<h1>User Input: "" + StringEscapeUtils.escapeHtml4(userInput) + ""</h1>"");
+    out.println(""</body>"");
+    out.println(""</html>"");
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    public class CommandInjectionExample {
+    public static void main(String[] args) throws IOException {
+    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    System.out.print(""Enter a command to execute: "");
+    String command = reader.readLine();
+    // Vulnerable code - directly executing user input as a command
+    Process process = Runtime.getRuntime().exec(command);
+    BufferedReader inputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String line;
+    while ((line = inputReader.readLine()) != null) {
+    System.out.println(line);
+    }
+    process.destroy();
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Command Injection
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    public class CommandInjectionExample {
+    public static void main(String[] args) throws IOException {
+    BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+    System.out.print(""Enter a command to execute: "");
+    String command = br.readLine();
+    // Vulnerable code - directly executing user input as a command
+    Process process = Runtime.getRuntime().exec(command);
+    BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String line;
+    while ((line = reader.readLine()) != null) {
+    System.out.println(line);
+    }
+    process.waitFor();
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Command Injection
+"    import java.io.IOException;
+    import javax.servlet.ServletException;
+    import javax.servlet.http.HttpServlet;
+    import javax.servlet.http.HttpServletRequest;
+    import javax.servlet.http.HttpServletResponse;
+    public class SecureServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    String userInput = request.getParameter(""input"");
+    String safeOutput = sanitizeInput(userInput);
+    String output = ""Hello, "" + safeOutput + ""!"";
+    response.getWriter().println(output);
+    }
+    private String sanitizeInput(String input) {
+    // Implement proper input sanitization and escaping logic here
+    // For example, using OWASP Java Encoder library for HTML escaping
+    return org.owasp.encoder.Encode.forHtml(input);
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-databind</artifactId>
+    <version>2.12.5</version>
+</dependency>",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.sql.*;
+    public class SecureSQLInjectionExample {
+    public static void main(String[] args) {
+    String userInput = ""'; DROP TABLE users; --""; // User input vulnerable to SQL Injection
+    try {
+    Connection conn = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    // Use a PreparedStatement with parameterized query
+    String query = ""SELECT * FROM users WHERE username = ?"";
+    PreparedStatement pstmt = conn.prepareStatement(query);
+    pstmt.setString(1, userInput);
+    ResultSet rs = pstmt.executeQuery();
+    while (rs.next()) {
+    System.out.println(""User found: "" + rs.getString(""username""));
+    }
+    conn.close();
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"/*
+
+ * Copyright 2017 Anton Tananaev (anton@traccar.org)
+
+ *
+
+ * Licensed under the Apache License, Version 2.0 (the ""License"");
+
+ * you may not use this file except in compliance with the License.
+
+ * You may obtain a copy of the License at
+
+ *
+
+ *     http://www.apache.org/licenses/LICENSE-2.0
+
+ *
+
+ * Unless required by applicable law or agreed to in writing, software
+
+ * distributed under the License is distributed on an ""AS IS"" BASIS,
+
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+ * See the License for the specific language governing permissions and
+
+ * limitations under the License.
+
+ */ org.traccar.database;
+
+
+
+import javax.naming.Context;
+
+import javax.naming.NamingEnumeration;
+
+import javax.naming.NamingException;
+
+import javax.naming.directory.Attribute;
+
+import javax.naming.directory.InitialDirContext;
+
+import javax.naming.directory.SearchControls;
+
+import javax.naming.directory.SearchResult;
+
+
+
+import org.slf4j.Logger;
+
+import org.slf4j.LoggerFactory;
+
+import org.traccar.config.Config;
+
+import org.traccar.model.User;
+
+
+
+import java.util.Hashtable;
+
+
+
+public class LdapProvider {
+
+
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(LdapProvider.class);
+
+
+
+    private String url;
+
+    private String searchBase;
+
+    private String idAttribute;
+
+    private String nameAttribute;
+
+    private String mailAttribute;
+
+    private String searchFilter;
+
+    private String adminFilter;
+
+    private String serviceUser;
+
+    private String servicePassword;
+
+
+
+    public LdapProvider(Config config) {
+
+        String url = config.getString(""ldap.url"");
+
+        if (url != null) {
+
+            this.url = url;
+
+        } else {
+
+            this.url = ""ldap://"" + config.getString(""ldap.server"") + "":"" + config.getInteger(""ldap.port"", 389);
+
+        }
+
+        this.searchBase = config.getString(""ldap.base"");
+
+        this.idAttribute = config.getString(""ldap.idAttribute"", ""uid"");
+
+        this.nameAttribute = config.getString(""ldap.nameAttribute"", ""cn"");
+
+        this.mailAt",Classification: VULNERABLE. Vulnerability Type: None
+"    import java.io.IOException;
+    import java.io.PrintWriter;
+    import javax.servlet.http.HttpServlet;
+    import javax.servlet.http.HttpServletRequest;
+    import javax.servlet.http.HttpServletResponse;
+    import org.apache.commons.text.StringEscapeUtils;
+    public class SecureServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    String userInput = request.getParameter(""input"");
+    response.setContentType(""text/html"");
+    PrintWriter out = response.getWriter();
+    out.println(""<html>"");
+    out.println(""<head><title>Secure Code Generation</title></head>"");
+    out.println(""<body>"");
+    // Properly handle user input by escaping special characters
+    out.println(""<h1>User Input: "" + StringEscapeUtils.escapeHtml4(userInput) + ""</h1>"");
+    out.println(""</body>"");
+    out.println(""</html>"");
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.util.Scanner;
+    public class SecureBufferExample {
+    public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print(""Enter a string: "");
+    String userInput = scanner.nextLine();
+    char[] buffer = new char[10];
+    int length = Math.min(userInput.length(), buffer.length); // Limit the number of characters read
+    userInput.getChars(0, length, buffer, 0);
+    System.out.println(""Buffer content: "" + new String(buffer));
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    public class CommandInjectionExample {
+    public static void main(String[] args) {
+    try {
+    BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+    System.out.print(""Enter the IP address to ping: "");
+    String ipAddress = br.readLine();
+    // Vulnerable code - user input directly used in command without proper validation
+    String command = ""ping "" + ipAddress;
+    Process process = Runtime.getRuntime().exec(command);
+    BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String line;
+    while ((line = reader.readLine()) != null) {
+    System.out.println(line);
+    }
+    } catch (IOException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Command Injection
+"    import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.stereotype.Service;
+    @Service
+    public class UserService {
+    @Autowired
+    private UserRepository userRepository;
+    public User getUser(Long id) {
+    return userRepository.findById(id).orElseThrow();
+    }
+    }
+    @Service
+    public class AdminService {
+    @Autowired
+    private UserRepository userRepository;
+    public void deleteUser(Long id) {
+    userRepository.deleteById(id);
+    }
+    }","Classification: VULNERABLE. Vulnerability Type: Incorrect use of Spring `@Autowired` annotation can lead to unintended dependencies being injected into a class, potentially leading to unexpected behavior or security issues."
+"    import java.io.*;
+    public class Main implements Serializable {
+    private static final long serialVersionUID = 1L;
+    private String data;
+    public Main(String data) {
+    this.data = data;
+    }
+    public String getData() {
+    return data;
+    }
+    public static void main(String[] args) {
+    try {
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    ObjectOutputStream oos = new ObjectOutputStream(bos);
+    Main main = new Main(""safeData"");
+    oos.writeObject(main);
+    oos.flush();
+    ByteArrayInputStream bin = new ByteArrayInputStream(bos.toByteArray());
+    ObjectInputStream ois = new ObjectInputStream(bin);
+    Main readMain = (Main) ois.readObject();
+    System.out.println(readMain.getData());
+    } catch (Exception e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.*;
+    import java.util.*;
+    public class XSSVulnerableCode {
+    public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print(""Enter your name: "");
+    String name = scanner.nextLine();
+    System.out.println(""Hello, "" + name + ""!""); // Vulnerable code
+    scanner.close();
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Cross-Site Scripting (XSS)
+"    import java.io.*;
+    import java.util.Scanner;
+    public class XSSVulnerableCode {
+    public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print(""Enter your name: "");
+    String userInput = scanner.nextLine();
+    // Improperly handling user input by directly outputting it to the webpage
+    System.out.println(""<h1>Welcome, "" + userInput + ""!</h1>"");
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Cross-Site Scripting (XSS)
+"    import java.io.*;
+    import javax.servlet.*;
+    import javax.servlet.http.*;
+    public class XSSVulnerableServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    String userInput = request.getParameter(""input"");
+    PrintWriter out = response.getWriter();
+    out.println(""<html>"");
+    out.println(""<body>"");
+    out.println(""<h1>User Input: "" + userInput + ""</h1>""); // User input directly rendered on the page
+    out.println(""</body>"");
+    out.println(""</html>"");
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Cross-Site Scripting (XSS)
+"    import java.sql.*;
+    public class SQLInjectionSecureApp {
+    public static void main(String[] args) {
+    String userInput = ""'; DROP TABLE users; --"";
+    try {
+    Connection connection = DriverManager.getConnection(""jdbc:mysql://localhost:3306/mydatabase"", ""username"", ""password"");
+    String query = ""SELECT * FROM users WHERE username=?"";
+    PreparedStatement preparedStatement = connection.prepareStatement(query);
+    preparedStatement.setString(1, userInput);
+    ResultSet resultSet = preparedStatement.executeQuery();
+    while(resultSet.next()) {
+    System.out.println(""User found: "" + resultSet.getString(""username""));
+    }
+    connection.close();
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.util.Random;
+    public class PredictableRandom {
+    private Random rand = new Random(123456789);
+    public int getValue() { return rand.nextInt(); }
+    }",Classification: VULNERABLE. Vulnerability Type: CWE-338: Use of Cryptographically Weak Pseudo-Random Number Generator
+"    import java.io.IOException;
+    import java.io.PrintWriter;
+    import javax.servlet.http.HttpServlet;
+    import javax.servlet.http.HttpServletRequest;
+    import javax.servlet.http.HttpServletResponse;
+    import org.owasp.encoder.Encode;
+    public class XSSSafeServlet extends HttpServlet {
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    String userInput = request.getParameter(""input"");
+    // Sanitize user input using OWASP Java Encoder library
+    String safeUserInput = Encode.forHtml(userInput);
+    String output = ""Hello, "" + safeUserInput + ""!"";
+    PrintWriter out = response.getWriter();
+    out.println(""<html><body>"");
+    out.println(""<h1>"" + output + ""</h1>"");
+    out.println(""</body></html>"");
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    public class SecureCommandExecutionExample {
+    public static void main(String[] args) throws IOException {
+    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    System.out.print(""Enter a directory name to list its contents: "");
+    String directory = reader.readLine();
+    // Secure code: using ProcessBuilder to execute the command safely
+    ProcessBuilder processBuilder = new ProcessBuilder(""ls"", directory);
+    // Redirect error stream to output stream
+    processBuilder.redirectErrorStream(true);
+    Process process = processBuilder.start();
+    BufferedReader processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String line;
+    while ((line = processOutputReader.readLine()) != null) {
+    System.out.println(line);
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"To fix the Path Traversal vulnerability in the provided Java code snippet, you can implement the following security measures:
+
+1. Sanitize the input file name to prevent directory traversal attacks.
+2. Use a whitelist approach to restrict the allowed characters in the file name.
+3. Validate the input against a predefined list of allowed file names or patterns.
+
+Here is an example of how you can implement these security measures in the code:
+
+```java
+import java.io.File;
+import java.util.Scanner;
+import java.util.regex.Pattern;
+
+public class SecurePathTraversal {
+
+    private static final String BASE_DIRECTORY = ""/path/to/directory/"";
+    private static final Pattern FILENAME_PATTERN = Pattern.compile(""[a-zA-Z0-9_\\-\\.]+"");
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print(""Enter file name: "");
+        String fileName = scanner.nextLine();
+
+        if (!isValidFileName(fileName)) {
+            System.out.println(""Invalid file name. Please enter a valid file name."");
+            return;
+        }
+
+        File file = new File(BASE_DIRECTORY + fileName);
+
+        if (file.exists()) {
+            System.out.println(""File "" + fileName + "" exists."");
+        } else {
+            System.out",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    package jenkins.model;
+    import antlr.ANTLRException;
+    import com.google.common.collect.ImmutableMap;
+    import com.google.common.collect.ImmutableSet;
+    import com.google.common.collect.Lists;
+    import com.google.inject.Injector;
+    import com.thoughtworks.xstream.XStream;
+    import hudson.BulkChange;
+    import hudson.DNSMultiCast;
+    import hudson.DescriptorExtensionList;
+    import hudson.Extension;
+    import hudson.ExtensionComponent;
+    import hudson.ExtensionFinder;
+    import hudson.ExtensionList;
+    import hudson.ExtensionPoint;
+    import hudson.FilePath;
+    import hudson.Functions;
+    import hudson.Launcher;
+    import hudson.Launcher.LocalLauncher;
+    import hudson.Lookup;
+    import hudson.Main;
+    import hudson.Plugin;
+    import hudson.PluginManager;
+    import hudson.PluginWrapper;
+    import hudson.ProxyConfiguration;
+    import jenkins.util.SystemProperties;
+    import hudson.TcpSlaveAgentListener;
+    import hudson.UDPBroadcastThread;
+    import hudson.Util;
+    import hudson.WebAppMain;
+    import hudson.XmlFile;
+    import hudson.cli.declarative.CLIMethod;
+    import hudson.cli.declarative.CLIResolver;
+    import hudson.init.InitMilestone;
+    import hudson.init.InitStrategy;
+    import hudson.init.TermMilestone;
+    import hudson.init.TerminatorFinder;
+    import hudson.lifecycle.Lifecycle;
+    import hudson.lifecycle.RestartNotSupportedException;
+    import hudson.logging.LogRecorderManager;
+    import hudson.markup.EscapedMarkupFormatter;
+    import hudson.markup.MarkupFormatter;
+    import hudson.model.AbstractCIBase;
+    import hudson.model.AbstractProject;
+    import hudson.model.Action;
+    import hudson.model.AdministrativeMonitor;
+    import hudson.model.AllView;
+    import hudson.model.Api;
+    import hudson.model.Computer;
+    import hudson.model.ComputerSet;
+    import hudson.model.DependencyGraph;
+    import hudson.model.Describable;
+    import hudson.model.Descriptor;
+    import hudson.model.Descriptor.FormException;
+    import hudson.model.DescriptorByNa",Classification: VULNERABLE. Vulnerability Type: None
+"To prevent Command Injection vulnerabilities in the given code, you should sanitize and validate user input before using it to construct commands to be executed. One way to improve the security of this code is by using `ProcessBuilder` instead of directly executing commands with `Runtime.exec()`. 
+
+Here is an updated version of the code with improved security measures:
+
+```java
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class SecureCommandExecutionExample {
+    public static void main(String[] args) {
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            System.out.print(""Enter the IP address to ping: "");
+            String ipAddress = reader.readLine();
+
+            // Sanitize and validate user input
+            if (!ipAddress.matches(""[a-zA-Z0-9:.]+"")) {
+                System.out.println(""Invalid IP address provided."");
+                return;
+            }
+
+            // Secure code - use ProcessBuilder with sanitized input
+            ProcessBuilder processBuilder = new ProcessBuilder(""ping"", ipAddress);
+            Process process = processBuilder.start();
+
+            BufferedReader inputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            while ((line = inputReader.readLine()) != null) {
+                System.out.println(line);
+            }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.IOException;
+    import java.io.PrintWriter;
+    import javax.servlet.ServletException;
+    import javax.servlet.http.HttpServlet;
+    import javax.servlet.http.HttpServletRequest;
+    import javax.servlet.http.HttpServletResponse;
+    public class VulnerableServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    String userInput = request.getParameter(""input"");
+    // Improperly handling user input by directly writing it to the response
+    PrintWriter out = response.getWriter();
+    out.println(""<html>"");
+    out.println(""<body>"");
+    out.println(""<h1>User Input: "" + userInput + ""</h1>"");
+    out.println(""</body>"");
+    out.println(""</html>"");
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Cross-Site Scripting (XSS)
+"public void processPacket(Packet packet)
+        {
+            if(!(packet instanceof org.jivesoftware.smack.packet.Message))
+                return;
+
+            org.jivesoftware.smack.packet.Message msg =
+                (org.jivesoftware.smack.packet.Message)packet;
+
+            boolean isForwardedSentMessage = false;
+            if(msg.getBody() == null)
+            {
+
+                CarbonPacketExtension carbonExt
+                    = (CarbonPacketExtension) msg.getExtension(
+                        CarbonPacketExtension.NAMESPACE);
+                if(carbonExt == null)
+                    return;
+
+                isForwardedSentMessage
+                    = (carbonExt.getElementName()
+                        == CarbonPacketExtension.SENT_ELEMENT_NAME);
+                List<ForwardedPacketExtension> extensions
+                    = carbonExt.getChildExtensionsOfType(
+                        ForwardedPacketExtension.class);
+                if(extensions.isEmpty())
+                    return;
+
+                // according to xep-0280 all carbons should come from
+                // our bare jid
+                if (!msg.getFrom().equals(
+                        StringUtils.parseBareAddress(
+                            jabberProvider.getOurJID())))
+                {
+                    logger.info(""Received a carbon copy with wrong from!"");
+                    return;
+                }
+
+                ForwardedPacketExtension forwardedExt = extensions.get(0);
+                msg = forwardedExt.getMessage();
+                if(msg == null || msg.getBody() == null)
+                    return;
+
+            }
+
+            Object multiChatExtension =
+                msg.getExtension(""x"", ""http://jabber.org/protocol/muc#user"");
+
+            // its not for us
+            if(multiChatExtension != null)
+                return;
+
+            String userFullId
+                = isForwardedSentMessage? msg.getTo() : msg.getFrom();
+
+            String userBareID = StringUtils.parseBareAddress(userFullId);
+
+            boole",Classification: NOT_VULNERABLE. Vulnerability Type: CWE-20
+"    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    public class SecureCommandExecution {
+    public static void main(String[] args) throws IOException {
+    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    System.out.print(""Enter a command to execute: "");
+    String userInput = reader.readLine();
+    // Secure code using ProcessBuilder
+    ProcessBuilder processBuilder = new ProcessBuilder(userInput.split("" ""));
+    Process process = processBuilder.start();
+    BufferedReader outputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    String line;
+    while ((line = outputReader.readLine()) != null) {
+    System.out.println(line);
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import org.owasp.encoder.Encode;
+    public class XSSFixedCode {
+    public static void main(String[] args) {
+    // Simulating user input
+    String userInput = ""<script>alert('XSS Vulnerability!')</script>"";
+    // Properly encode user input
+    String encodedUserInput = Encode.forHtml(userInput);
+    // Printing the output with encoded user input
+    String output = ""Hello, "" + encodedUserInput;
+    System.out.println(output);
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.io.BufferedReader;
+    import java.io.File;
+    import java.io.FileReader;
+    import java.io.IOException;
+    public class PathTraversalVulnerability {
+    public static void main(String[] args) {
+    String userInput = args[0]; // Assume userInput comes from user input
+    String filePath = ""/path/to/files/"" + userInput; // User-supplied input directly concatenated with file path
+    try {
+    File file = new File(filePath);
+    BufferedReader br = new BufferedReader(new FileReader(file));
+    String line;
+    while ((line = br.readLine()) != null) {
+    System.out.println(line);
+    }
+    br.close();
+    } catch (IOException e) {
+    System.out.println(""Error reading file: "" + e.getMessage());
+    }
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Path Traversal
+"    import java.sql.*;
+    public class SQLInjectionSecure {
+    public static void main(String[] args) {
+    try {
+    String userInput = ""1'; DROP TABLE users; --"";
+    // Connecting to a sample database
+    Connection conn = DriverManager.getConnection(""jdbc:mysql://localhost:3306/sample_db"", ""username"", ""password"");
+    // Use PreparedStatement to prevent SQL Injection
+    String query = ""SELECT * FROM users WHERE id = ?"";
+    PreparedStatement pstmt = conn.prepareStatement(query);
+    pstmt.setString(1, userInput);
+    ResultSet rs = pstmt.executeQuery();
+    while (rs.next()) {
+    System.out.println(""User ID: "" + rs.getInt(""id"") + "", Name: "" + rs.getString(""name""));
+    }
+    } catch (SQLException e) {
+    e.printStackTrace();
+    }
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
+"    import java.util.Scanner;
+    public class BufferOverflowVulnerability {
+    public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print(""Enter a string: "");
+    String input = scanner.nextLine();
+    // Assume the input length is limited to 10 characters
+    char[] buffer = new char[10];
+    // Copy user input into the buffer without proper bounds checking
+    for (int i = 0; i < input.length(); i++) {
+    buffer[i] = input.charAt(i);
+    }
+    System.out.println(""Buffer overflow vulnerability exploited successfully."");
+    }
+    }",Classification: VULNERABLE. Vulnerability Type: Buffer Overflow
+"    import java.io.*;
+    import javax.servlet.*;
+    import javax.servlet.http.*;
+    import org.apache.commons.text.StringEscapeUtils;
+    public class XSSFixedServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    response.setContentType(""text/html"");
+    PrintWriter out = response.getWriter();
+    String userInput = request.getParameter(""input"");
+    out.println(""<html>"");
+    out.println(""<head><title>XSS Fixed Page</title></head>"");
+    out.println(""<body>"");
+    // Sanitize user input to prevent XSS
+    String sanitizedInput = StringEscapeUtils.escapeHtml4(userInput);
+    out.println(""<p>User Input: "" + sanitizedInput + ""</p>"");
+    out.println(""</body></html>"");
+    }
+    }",Classification: NOT_VULNERABLE. Vulnerability Type: safe
