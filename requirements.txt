@@ -1,0 +1,20 @@
+# Inference / evaluation deps (Colab GPU: unsloth pulls torch/CUDA itself).
+# Pinned from the versions in java_eval_new.ipynb cell 1-2.
+unsloth
+transformers==4.51.3
+bitsandbytes
+accelerate
+peft
+trl==0.15.2
+xformers==0.0.29.post3
+triton
+cut_cross_entropy
+unsloth_zoo
+datasets>=3.4.1
+sentencepiece
+protobuf
+huggingface_hub
+hf_transfer
+pandas
+tqdm
+javalang
