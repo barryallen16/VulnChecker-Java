@@ -1,0 +1,19 @@
+# secrets — never commit (a live HF token was once lost this way)
+.env
+
+# archives live in ../all-unorganized-code/, not in git
+*.7z
+*.zip
+
+# local logs and audit notes — never commit
+opencode-debug.log
+ASSESSMENT.md
+
+# pipeline data lives on huggingface, fetched via scripts/download_data.sh
+datasets/**/*.jsonl
+# superseded dataset versions (documented in README, regenerable)
+datasets/final-dataset/previous-versions/
+datasets/merged_jsonl/previous-versions/
+datasets/merged_jsonl/enhanced_dataset.jsonl
+datasets/merged_jsonl/clean+enhanced.jsonl
+datasets/merged_jsonl/merged_output_v4.jsonl
