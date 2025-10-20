@@ -7,7 +7,11 @@ detector and not a SOTA claim.
 
 **Strongest results:** `barryallen16/Qwen2.5_7B_java_vul_final` scores **979/1000 =
 97.90%** on a stratified NIST-Juliet held-out set (`model-evaluation/juliet-heldout-1000.csv`,
-Oct 2026 Colab run, per-case file `juliet-final-1000.json`) and **194/200 =
+Oct 2026 Colab run, per-case file `juliet-final-1000.json`) — with one open flaw:
+Juliet method names (`bad`/`good...`) and `POTENTIAL FLAW` comments leak the verdict,
+so that run partly measures name-reading. A neutralized re-run on
+`juliet-heldout-1000-neutral.csv` (same rows, names and flaw comments scrubbed) is
+pending and will replace that number, plus **194/200 =
 97.00%** (precision/recall/F1 96.81%) on a 200-case LLM-generated set — see the
 stored outputs in `java_eval_new.ipynb`. Two caveats on the 200-case run: the cases
 are LLM-written, not a public benchmark, and 31 of the 200 rows are
@@ -23,7 +27,7 @@ without a GPU.
 | Notebook | Model evaluated | Cases | Correct | Accuracy |
 |---|---|---|---|---|
 | `java_eval_new.ipynb` | `Qwen2.5_7B_java_vul_final` (LoRA on `unsloth/qwen2.5-7b-instruct`, non-Coder) | 200 | 194 | **97.00%** |
-| `juliet-final-1000.json` (Colab T4, Oct 2026) | `Qwen2.5_7B_java_vul_final` | 1000 | 979 | **97.90%** |
+| `juliet-final-1000.json` (Colab T4, Oct 2026) | `Qwen2.5_7B_java_vul_final` | 1000 | 979 | 97.90%, confounded — see note |
 | `model-evaluation/testcases_java_eval.ipynb` | `Qwen2.5_7B_java_vul_v3` (LoRA on `unsloth/qwen2.5-coder-7b-instruct`) | 88 | 81 | 92.05% |
 | `misc/eval-res1.txt` (per-case JSON) | Mistral-Nemo-Instruct-2407 4-bit | 102 | 79 | 77.45% |
 
