@@ -100,6 +100,8 @@ def main():
     ap.add_argument("--shots", type=int, default=0)
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--max-new", type=int, default=96)
+    ap.add_argument("--no-gen", action="store_true",
+                    help="skip text generation; score the verdict token only")
     ap.add_argument("--out", default="/kaggle/working/predictions.jsonl")
     args = ap.parse_args()
     sets = args.set or ["test"]
@@ -114,7 +116,8 @@ def main():
         with urllib.request.urlopen(args.adapter_url, timeout=600) as r:
             with zipfile.ZipFile(io.BytesIO(r.read())) as z:
                 z.extractall(dest)
-        args.adapter = str(dest)
+        found = list(dest.rglob("adapter_config.json"))
+        args.adapter = str(found[0].parent if found else dest)
 
     from unsloth import FastLanguageModel
     model, tokenizer = FastLanguageModel.from_pretrained(
@@ -157,10 +160,14 @@ def main():
                 logits = model(**ids).logits[0, -1]
                 p_tp = torch.softmax(
                     torch.stack([logits[tok_tp], logits[tok_fp]]), dim=0)[0].item()
-                gen = model.generate(**ids, max_new_tokens=args.max_new, do_sample=False,
-                                     pad_token_id=tokenizer.eos_token_id)
-            text = tokenizer.decode(gen[0][ids.input_ids.shape[1]:],
-                                    skip_special_tokens=True)
+                if args.no_gen:
+                    text = ""
+                else:
+                    gen = model.generate(**ids, max_new_tokens=args.max_new,
+                                         do_sample=False,
+                                         pad_token_id=tokenizer.eos_token_id)
+                    text = tokenizer.decode(gen[0][ids.input_ids.shape[1]:],
+                                            skip_special_tokens=True)
             verdict = "TP" if p_tp >= 0.5 else "FP"
             why = re.search(r"WHY:\s*(.+)", text)
             fix = re.search(r"FIX:\s*(.+)", text)

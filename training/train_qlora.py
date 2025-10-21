@@ -104,7 +104,7 @@ def main():
 
     report = "none"
     if os.environ.get("WANDB_API_KEY"):
-        os.environ["WANDB_PROJECT"] = os.environ.get("WANDB_PROJECT", "triagemate-triage")
+        os.environ["WANDB_PROJECT"] = "triagemate-triage"
         report = "wandb"
 
     cfg_kwargs = dict(

@@ -41,7 +41,7 @@ def main():
     ap.add_argument("--data-dir", default="/kaggle/working/legacy")
     ap.add_argument("--out", default="/kaggle/working/legacy-adapter")
     ap.add_argument("--model", default="unsloth/qwen2.5-7b-instruct-bnb-4bit")
-    ap.add_argument("--max-seq", type=int, default=8192)
+    ap.add_argument("--max-seq", type=int, default=2048)
     ap.add_argument("--smoke", action="store_true")
     args = ap.parse_args()
 
@@ -85,11 +85,15 @@ def main():
         cfg = SFTConfig(max_length=args.max_seq, **cfg_kwargs)
     except TypeError:
         cfg = SFTConfig(max_seq_length=args.max_seq, **cfg_kwargs)
-    trainer = SFTTrainer(
-        model=model, tokenizer=tokenizer,
+    trainer_kwargs = dict(
+        model=model,
         train_dataset=Dataset.from_list([{"text": render(r)} for r in train]),
         eval_dataset=Dataset.from_list([{"text": render(r)} for r in val]),
         args=cfg)
+    try:
+        trainer = SFTTrainer(processing_class=tokenizer, **trainer_kwargs)
+    except TypeError:  # trl < 0.12
+        trainer = SFTTrainer(tokenizer=tokenizer, **trainer_kwargs)
     trainer = train_on_responses_only(
         trainer, instruction_part="<|im_start|>user\n",
         response_part="<|im_start|>assistant\n")
