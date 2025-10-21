@@ -9,7 +9,8 @@ TAG="triage-v1"
 
 stage="$(mktemp -d)"
 cp data/triage/triage_train.jsonl data/triage/triage_val.jsonl \
-   data/triage/triage_test.jsonl data/triage/triage_all.jsonl "$stage/"
+   data/triage/triage_test.jsonl data/triage/triage_all.jsonl \
+   data/triage/triage_sample200.jsonl "$stage/"
 cp model-evaluation/juliet-heldout-1000-neutral-v2.csv \
    model-evaluation/juliet-heldout-1000-neutral.csv \
    model-evaluation/eval-clean-152.csv "$stage/"

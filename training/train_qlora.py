@@ -53,10 +53,10 @@ def main():
 
     ensure_deps()
     import torch
-    from datasets import Dataset
-    from trl import SFTConfig, SFTTrainer
     from unsloth import FastLanguageModel
     from unsloth.chat_templates import train_on_responses_only
+    from datasets import Dataset
+    from trl import SFTConfig, SFTTrainer
 
     data_dir = fetch_data(Path(args.data_dir))
     train = load_jsonl(data_dir / "triage_train.jsonl")
@@ -64,10 +64,12 @@ def main():
     if args.smoke:
         train, val = train[:100], val[:20]
 
+    # T4: Unsloth's gradient offload produces bf16 grads, which the fp16 GradScaler
+    # cannot unscale. Train without AMP; the 4-bit base keeps memory in range.
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name=args.model,
         max_seq_length=args.max_seq,
-        dtype=None,
+        dtype=torch.float16,
         load_in_4bit=True,
     )
     model = FastLanguageModel.get_peft_model(
@@ -115,8 +117,8 @@ def main():
         num_train_epochs=args.epochs,
         max_steps=args.max_steps,
         learning_rate=1e-4,
-        fp16=not torch.cuda.is_bf16_supported(),
-        bf16=torch.cuda.is_bf16_supported(),
+        fp16=False,
+        bf16=False,
         logging_steps=10,
         save_steps=250,
         save_total_limit=2,

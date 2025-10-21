@@ -47,10 +47,10 @@ def main():
 
     ensure_deps()
     import torch
-    from datasets import Dataset
-    from trl import SFTConfig, SFTTrainer
     from unsloth import FastLanguageModel
     from unsloth.chat_templates import train_on_responses_only
+    from datasets import Dataset
+    from trl import SFTConfig, SFTTrainer
 
     d = Path(args.data_dir)
     tgz = fetch(DATA_URL, d / "legacy-v1.tar.gz")
@@ -61,9 +61,11 @@ def main():
     if args.smoke:
         train, val = train[:100], val[:20]
 
+    use_bf16 = (torch.cuda.is_bf16_supported()
+                and torch.cuda.get_device_capability()[0] >= 8)
     model, tokenizer = FastLanguageModel.from_pretrained(
-        model_name=args.model, max_seq_length=args.max_seq, dtype=None,
-        load_in_4bit=True)
+        model_name=args.model, max_seq_length=args.max_seq,
+        dtype=torch.bfloat16 if use_bf16 else torch.float16, load_in_4bit=True)
     model = FastLanguageModel.get_peft_model(
         model, r=32, lora_alpha=64, lora_dropout=0.0,
         target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
@@ -76,8 +78,8 @@ def main():
     cfg_kwargs = dict(
         output_dir=args.out, per_device_train_batch_size=1,
         gradient_accumulation_steps=16, warmup_steps=50, num_train_epochs=1,
-        learning_rate=1e-4, fp16=not torch.cuda.is_bf16_supported(),
-        bf16=torch.cuda.is_bf16_supported(), logging_steps=10, save_steps=500,
+        learning_rate=1e-4, fp16=not use_bf16, bf16=use_bf16, logging_steps=10,
+        save_steps=500,
         save_total_limit=2, optim="adamw_8bit", weight_decay=0.01,
         lr_scheduler_type="cosine", seed=1611, dataset_text_field="text",
         report_to="none")

@@ -38,32 +38,41 @@ def main():
     args = ap.parse_args()
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
-    table, calib = [], {}
+    calib = {}
+    per_set = {}
+    all_rows = {}
     for spec in args.pred:
         name, _, path = spec.partition("=")
         rows = read(path)
-        y = labels(rows)
-        score = np.array([r["p_tp"] for r in rows])
-        table.append(summarize(y, score, name))
-        calib[name] = calibration_bins(y, score)
-        if name == "semgrep":
-            table[-1] = semgrep_row(y)
-    # Semgrep alone is implied by the labels, always include it.
-    if not any(r["model"] == "semgrep alone" for r in table):
-        y = labels(read(args.pred[0].partition("=")[2]))
-        table.insert(0, semgrep_row(y))
-
+        all_rows[name] = rows
+        for set_name in sorted({r.get("set", "all") for r in rows}):
+            sub = [r for r in rows if r.get("set", "all") == set_name]
+            y = labels(sub)
+            score = np.array([r["p_tp"] for r in sub])
+            per_set.setdefault(set_name, []).append(summarize(y, score, name))
+            calib.setdefault(set_name, {})[name] = calibration_bins(y, score)
+            if name == "semgrep":
+                per_set[set_name][-1] = semgrep_row(y)
     header = ("| Model | n | Precision | Recall | F1 | Precision @ 90% recall | "
               "ROC-AUC | ECE |")
-    lines = [header, "|---|---|---|---|---|---|---|---|"]
-    for r in table:
-        lines.append(
-            f"| {r['model']} | {r['n']} | {r['precision']:.3f} | {r['recall']:.3f} | "
-            f"{r['f1']:.3f} | {r['precision_at_90_recall']:.3f} | "
-            f"{r['roc_auc']:.3f} | {r['ece']:.3f} |")
-    md = "\n".join(lines) + "\n"
+    sections = []
+    for set_name, table in per_set.items():
+        # Semgrep alone is implied by the labels, always include it.
+        if not any(r["model"] == "semgrep alone" for r in table):
+            base = next((rows for rows in all_rows.values()
+                         if any(r.get("set", "all") == set_name for r in rows)), [])
+            table.insert(0, semgrep_row(labels(
+                [r for r in base if r.get("set", "all") == set_name])))
+        lines = [f"## {set_name}", "", header, "|---|---|---|---|---|---|---|---|"]
+        for r in table:
+            lines.append(
+                f"| {r['model']} | {r['n']} | {r['precision']:.3f} | {r['recall']:.3f} | "
+                f"{r['f1']:.3f} | {r['precision_at_90_recall']:.3f} | "
+                f"{r['roc_auc']:.3f} | {r['ece']:.3f} |")
+        sections.append("\n".join(lines))
+    md = "\n\n".join(sections) + "\n"
     (out / "comparison.md").write_text(md, encoding="utf-8")
-    (out / "metrics.json").write_text(json.dumps(table, indent=2), encoding="utf-8")
+    (out / "metrics.json").write_text(json.dumps(per_set, indent=2), encoding="utf-8")
     (out / "calibration.json").write_text(json.dumps(calib, indent=2), encoding="utf-8")
     print(md)
 

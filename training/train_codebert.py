@@ -71,17 +71,21 @@ def main():
 
     tok = AutoTokenizer.from_pretrained(args.model)
     model = AutoModelForSequenceClassification.from_pretrained(args.model, num_labels=2)
+    import inspect
+    train_kwargs = dict(
+        output_dir=args.out, num_train_epochs=args.epochs,
+        per_device_train_batch_size=args.batch,
+        per_device_eval_batch_size=args.batch,
+        learning_rate=args.lr, warmup_ratio=0.06,
+        eval_strategy="epoch", save_strategy="no",
+        logging_steps=50, seed=1611, report_to=[],
+        fp16=torch.cuda.is_available(),
+    )
+    valid = set(inspect.signature(TrainingArguments.__init__).parameters)
+    train_kwargs = {k: v for k, v in train_kwargs.items() if k in valid}
     trainer = Trainer(
         model=model,
-        args=TrainingArguments(
-            output_dir=args.out, num_train_epochs=args.epochs,
-            per_device_train_batch_size=args.batch,
-            per_device_eval_batch_size=args.batch,
-            learning_rate=args.lr, warmup_ratio=0.06,
-            eval_strategy="epoch", save_strategy="no",
-            logging_steps=50, seed=1611, report_to=[],
-            fp16=torch.cuda.is_available(),
-        ),
+        args=TrainingArguments(**train_kwargs),
         train_dataset=Rows(train, tok),
         eval_dataset=Rows(val, tok),
     )

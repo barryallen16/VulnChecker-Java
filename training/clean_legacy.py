@@ -4,6 +4,7 @@ Removes prose rows, verdict-bearing identifiers and comments, contradictory
 labels, and duplicates. Names are renamed per row so no fixed mapping leaks.
 """
 import argparse
+import csv
 import hashlib
 import json
 import re
@@ -49,6 +50,17 @@ def name_verdict(name):
     return None
 
 
+def frozen_codes():
+    """Normalized code of every frozen eval row, so training cannot memorise it."""
+    out = set()
+    for name in ("juliet-heldout-1000-neutral-v2.csv", "eval-clean-152.csv"):
+        path = Path("model-evaluation") / name
+        if path.exists():
+            out |= {re.sub(r"\s+", "", r["code"])
+                    for r in csv.DictReader(path.open(encoding="utf-8"))}
+    return out
+
+
 def clean_row(row):
     msgs = row["messages"]
     code, answer = msgs[1]["content"], msgs[2]["content"]
@@ -73,6 +85,7 @@ def main():
     ap.add_argument("--out", default="data/legacy")
     args = ap.parse_args()
     out = Path(args.out)
+    frozen = frozen_codes()
     stats = Counter()
     seen = set()
     for split, path in (("train", args.train), ("val", args.val)):
@@ -83,8 +96,11 @@ def main():
             if not cleaned:
                 stats[f"{split} {why}"] += 1
                 continue
-            h = hashlib.sha256(
-                re.sub(r"\s+", "", cleaned["messages"][1]["content"]).encode()).hexdigest()
+            code = cleaned["messages"][1]["content"]
+            if re.sub(r"\s+", "", code) in frozen:
+                stats[f"{split} frozen heldout"] += 1
+                continue
+            h = hashlib.sha256(re.sub(r"\s+", "", code).encode()).hexdigest()
             if h in seen:
                 stats[f"{split} duplicate"] += 1
                 continue
