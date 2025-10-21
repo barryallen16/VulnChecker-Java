@@ -17,3 +17,10 @@ datasets/merged_jsonl/previous-versions/
 datasets/merged_jsonl/enhanced_dataset.jsonl
 datasets/merged_jsonl/clean+enhanced.jsonl
 datasets/merged_jsonl/merged_output_v4.jsonl
+
+# downloaded benchmark suites and generated triage data
+benchmarks/
+data/
+.venv/
+*.egg-info/
+__pycache__/
