@@ -83,8 +83,7 @@ def load_set(name, data_dir):
                 "cwe": "CWE-000",
                 "file": f"eval_{i}.java",
                 "code_window": r["code"],
-                "label": "TP" if r["expected"].lower().startswith(("vuln", "1", "true"))
-                         else "FP",
+                "label": "FP" if "NOT_VULNERABLE" in r["expected"].upper() else "TP",
             })
     return rows
 

@@ -12,16 +12,20 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--pred", required=True)
     ap.add_argument("--data", default="data/triage/triage_test.jsonl")
+    ap.add_argument("--set", default="test", help="prediction set to analyse")
     ap.add_argument("--out", default="notes/errors.md")
     ap.add_argument("--n", type=int, default=30)
     args = ap.parse_args()
     rows = {r["id"]: r for r in load(args.data)}
-    preds = load(args.pred)
+    preds = [p for p in load(args.pred) if p.get("set") == args.set]
     wrong = [p for p in preds if p["verdict"] != p["label"]]
     wrong.sort(key=lambda p: -abs(p["p_tp"] - 0.5))
     lines = [f"# {len(wrong)} mistakes out of {len(preds)}", "",
              "Sorted by confidence. Every row is a test-family alert the model "
              "never trained on.", ""]
+    if not any(p.get("why") for p in preds):
+        lines += ["> Scored with `--no-gen`, so the model's WHY and FIX text is "
+                  "empty; the code and the confidence are the evidence.", ""]
     for i, p in enumerate(wrong[:args.n], 1):
         r = rows.get(p["id"], {})
         lines += [

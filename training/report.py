@@ -57,8 +57,9 @@ def main():
               "ROC-AUC | ECE |")
     sections = []
     for set_name, table in per_set.items():
-        # Semgrep alone is implied by the labels, always include it.
-        if not any(r["model"] == "semgrep alone" for r in table):
+        # Semgrep alone is only meaningful on the alert split, where the labels
+        # come from its own findings. The frozen sets were never scanned.
+        if set_name == "test" and not any(r["model"] == "semgrep alone" for r in table):
             base = next((rows for rows in all_rows.values()
                          if any(r.get("set", "all") == set_name for r in rows)), [])
             table.insert(0, semgrep_row(labels(
