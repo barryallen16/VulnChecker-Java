@@ -14,8 +14,8 @@ from pathlib import Path
 
 DATA_URL = os.environ.get(
     "LEGACY_DATA_URL",
-    "https://github.com/barryallen16/VulnChecker-Java/releases/download/"
-    "triage-v1/legacy-v1.tar.gz",
+    "https://huggingface.co/datasets/barryallen16/all-tmp/resolve/main/"
+    "legacy-v1.tar.gz",
 )
 
 
@@ -47,6 +47,8 @@ def main():
 
     ensure_deps()
     import torch
+    if not torch.cuda.is_available():
+        sys.exit("no GPU")
     from unsloth import FastLanguageModel
     from unsloth.chat_templates import train_on_responses_only
     from datasets import Dataset
@@ -61,16 +63,16 @@ def main():
     if args.smoke:
         train, val = train[:100], val[:20]
 
-    use_bf16 = (torch.cuda.is_bf16_supported()
-                and torch.cuda.get_device_capability()[0] >= 8)
+    # T4: standard checkpointing, since Unsloth's offload path produced bf16
+    # gradient buffers that broke fp16 AMP.
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name=args.model, max_seq_length=args.max_seq,
-        dtype=torch.bfloat16 if use_bf16 else torch.float16, load_in_4bit=True)
+        dtype=torch.float16, load_in_4bit=True)
     model = FastLanguageModel.get_peft_model(
         model, r=32, lora_alpha=64, lora_dropout=0.0,
         target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
                         "gate_proj", "up_proj", "down_proj"],
-        use_gradient_checkpointing="unsloth", random_state=1611)
+        use_gradient_checkpointing=True, random_state=1611)
 
     def render(row):
         return tokenizer.apply_chat_template(row["messages"], tokenize=False)
@@ -78,7 +80,7 @@ def main():
     cfg_kwargs = dict(
         output_dir=args.out, per_device_train_batch_size=1,
         gradient_accumulation_steps=16, warmup_steps=50, num_train_epochs=1,
-        learning_rate=1e-4, fp16=not use_bf16, bf16=use_bf16, logging_steps=10,
+        learning_rate=1e-4, fp16=True, bf16=False, logging_steps=10,
         save_steps=500,
         save_total_limit=2, optim="adamw_8bit", weight_decay=0.01,
         lr_scheduler_type="cosine", seed=1611, dataset_text_field="text",

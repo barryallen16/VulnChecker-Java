@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-# Package the triage dataset and the cleaned legacy set as GitHub release assets.
-# Kaggle kernels download these by URL; no Hugging Face token is needed.
+# Package the triage dataset and the cleaned legacy set and upload them to the
+# public Hugging Face dataset repo. Kaggle kernels download these by URL; no
+# Hugging Face token is needed there.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
-TAG="triage-v1"
+REPO="barryallen16/all-tmp"
 
 stage="$(mktemp -d)"
 cp data/triage/triage_train.jsonl data/triage/triage_val.jsonl \
@@ -24,7 +25,5 @@ cp model-evaluation/juliet-heldout-1000-neutral-v2.csv "$stage/"
 tar -czf /tmp/legacy-v1.tar.gz -C "$stage" .
 rm -rf "$stage"
 
-gh release create "$TAG" /tmp/triage-v1.tar.gz /tmp/legacy-v1.tar.gz \
-  --title "TriageMate data v1" \
-  --notes "Labelled Semgrep alerts from OWASP Benchmark and Juliet, plus the cleaned legacy classifier set. See data-sheet.md." \
-  || gh release upload "$TAG" /tmp/triage-v1.tar.gz /tmp/legacy-v1.tar.gz --clobber
+hf upload "$REPO" /tmp/triage-v1.tar.gz triage-v1.tar.gz --type dataset
+hf upload "$REPO" /tmp/legacy-v1.tar.gz legacy-v1.tar.gz --type dataset

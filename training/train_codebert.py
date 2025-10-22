@@ -52,9 +52,13 @@ def main():
     ap.add_argument("--batch", type=int, default=16)
     ap.add_argument("--lr", type=float, default=2e-5)
     ap.add_argument("--limit", type=int, default=0)
-    ap.add_argument("--data-url", default="")
+    ap.add_argument("--data-url", default=(
+        "https://huggingface.co/datasets/barryallen16/all-tmp/resolve/main/"
+        "triage-v1.tar.gz"))
     args = ap.parse_args()
     ensure_deps()
+    if not torch.cuda.is_available():
+        sys.exit("no GPU")
     d = Path(args.data_dir)
     if args.data_url:
         import tarfile

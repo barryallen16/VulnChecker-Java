@@ -35,8 +35,8 @@ def user_prompt(row):
             f"CODE:\n```java\n{window}\n```\n\n{INSTRUCTIONS}")
 
 
-DATA_URL = ("https://github.com/barryallen16/VulnChecker-Java/releases/download/"
-            "triage-v1/triage-v1.tar.gz")
+DATA_URL = ("https://huggingface.co/datasets/barryallen16/all-tmp/resolve/main/"
+            "triage-v1.tar.gz")
 
 
 def fetch_data(dest):
@@ -106,6 +106,8 @@ def main():
     args = ap.parse_args()
     sets = args.set or ["test"]
     ensure_deps()
+    if not torch.cuda.is_available():
+        sys.exit("no GPU")
     args.data_dir = str(fetch_data(args.data_dir))
     if args.adapter_url:
         import io

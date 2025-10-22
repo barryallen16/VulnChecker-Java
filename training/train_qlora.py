@@ -14,8 +14,8 @@ from pathlib import Path
 
 DATA_URL = os.environ.get(
     "TRIAGE_DATA_URL",
-    "https://github.com/barryallen16/VulnChecker-Java/releases/download/"
-    "triage-v1/triage-v1.tar.gz",
+    "https://huggingface.co/datasets/barryallen16/all-tmp/resolve/main/"
+    "triage-v1.tar.gz",
 )
 
 
@@ -53,6 +53,8 @@ def main():
 
     ensure_deps()
     import torch
+    if not torch.cuda.is_available():
+        sys.exit("no GPU")
     from unsloth import FastLanguageModel
     from unsloth.chat_templates import train_on_responses_only
     from datasets import Dataset
@@ -64,12 +66,12 @@ def main():
     if args.smoke:
         train, val = train[:100], val[:20]
 
-    # T4: Unsloth's gradient offload produces bf16 grads, which the fp16 GradScaler
-    # cannot unscale. Train without AMP; the 4-bit base keeps memory in range.
+    use_bf16 = (torch.cuda.is_bf16_supported()
+                and torch.cuda.get_device_capability()[0] >= 8)
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name=args.model,
         max_seq_length=args.max_seq,
-        dtype=torch.float16,
+        dtype=torch.bfloat16 if use_bf16 else torch.float16,
         load_in_4bit=True,
     )
     model = FastLanguageModel.get_peft_model(
@@ -79,7 +81,7 @@ def main():
         lora_dropout=0.0,
         target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
                         "gate_proj", "up_proj", "down_proj"],
-        use_gradient_checkpointing="unsloth",
+        use_gradient_checkpointing=True,
         random_state=args.seed,
     )
 
@@ -117,8 +119,8 @@ def main():
         num_train_epochs=args.epochs,
         max_steps=args.max_steps,
         learning_rate=1e-4,
-        fp16=False,
-        bf16=False,
+        fp16=not use_bf16,
+        bf16=use_bf16,
         logging_steps=10,
         save_steps=250,
         save_total_limit=2,

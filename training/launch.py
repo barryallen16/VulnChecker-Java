@@ -41,6 +41,7 @@ def main():
     if args.dest:
         r.download_all(run_id, Path(args.dest))
         print(f"downloaded to {args.dest}")
+        r.cleanup()
 
 
 if __name__ == "__main__":
