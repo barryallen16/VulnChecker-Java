@@ -73,7 +73,10 @@ The prefix now carries nothing: 249 safe and 231 vulnerable rows start with `fun
 The old training set had the same disease: 79.6% of its rows had a class name that stated the verdict.
 [`notes/leak-audit.md`](notes/leak-audit.md) has the counts.
 
-LEGACY_TBD
+The old 7B model, run on `juliet-heldout-1000-neutral-v2.csv` with its original prompt, scores 735/1000 = 73.50%.
+It calls no safe case vulnerable and misses 265 of the 500 vulnerable cases.
+The 97.90% was the method names.
+`training/eval_legacy.py` reproduces it.
 
 ## Install
 
