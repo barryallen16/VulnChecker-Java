@@ -4,6 +4,12 @@
 
 Labelled static-analysis alerts for Java, used to train and evaluate a triage model. Each row is one Semgrep alert with the enclosing method, a TP/FP label, a short reason and a short fix. The task is sorting alerts, not finding them.
 
+## Files and hosting
+
+- `triage-v1.tar.gz` holds the train, val, test and all splits, the 200-row sample, the frozen eval CSVs and this data sheet.
+- `legacy-v1.tar.gz` holds the cleaned legacy classifier set.
+- Both are public at https://huggingface.co/datasets/barryallen16/all-tmp and the training scripts download from there.
+
 ## Sources
 
 - **OWASP Benchmark v1.2** (2,740 Java servlets, `expectedresults-1.2.csv`). GPLv2. Alerts are labelled only when the rule's CWE matches the test case's category; secondary alerts on unrelated rules are dropped.
