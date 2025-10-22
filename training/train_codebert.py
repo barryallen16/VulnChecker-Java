@@ -7,7 +7,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import precision_recall_fscore_support, roc_auc_score
 from torch.utils.data import Dataset
 from transformers import (AutoModelForSequenceClassification, AutoTokenizer,
                           Trainer, TrainingArguments)
@@ -104,8 +104,16 @@ def main():
         for r, p in zip(test, p_tp):
             fh.write(json.dumps({"id": r["id"], "set": "test", "label": r["label"],
                                  "p_tp": float(p)}) + "\n")
-    auc = roc_auc_score([1 if r["label"] == "TP" else 0 for r in test], p_tp)
-    print(f"test rows {len(test)} roc_auc {auc:.4f}")
+    y = [1 if r["label"] == "TP" else 0 for r in test]
+    pred = (p_tp >= 0.5).astype(int)
+    precision, recall, f1, _ = precision_recall_fscore_support(
+        y, pred, average="binary", zero_division=0)
+    summary = {"set": "test", "n": len(test),
+               "auc": round(float(roc_auc_score(y, p_tp)), 4),
+               "precision": round(float(precision), 4),
+               "recall": round(float(recall), 4),
+               "f1": round(float(f1), 4)}
+    print(json.dumps(summary), flush=True)
     # Predictions are the artifact; the 500 MB checkpoint only fills the
     # server's output cache when pulled.
 

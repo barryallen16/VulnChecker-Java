@@ -185,6 +185,24 @@ def main():
                 print(f"{set_name} {i}/{len(rows)} p_tp={p_tp:.3f}", flush=True)
     out.close()
 
+    # Log-only summary so the numbers are readable without pulling outputs.
+    preds = [json.loads(line) for line in open(args.out, encoding="utf-8")]
+    for set_name in sorted({r["set"] for r in preds}):
+        sub = [r for r in preds if r["set"] == set_name]
+        y = [1 if r["label"] == "TP" else 0 for r in sub]
+        pred = [1 if r["p_tp"] >= 0.5 else 0 for r in sub]
+        tp = sum(1 for a, b in zip(y, pred) if a and b)
+        fp = sum(1 for a, b in zip(y, pred) if not a and b)
+        fn = sum(1 for a, b in zip(y, pred) if a and not b)
+        precision = tp / (tp + fp) if tp + fp else 0
+        recall = tp / (tp + fn) if tp + fn else 0
+        f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0
+        print(json.dumps({"set": set_name, "n": len(sub),
+                          "precision": round(precision, 4),
+                          "recall": round(recall, 4), "f1": round(f1, 4),
+                          "tp": tp, "fp": fp, "fn": fn,
+                          "tn": len(sub) - tp - fp - fn}), flush=True)
+
 
 if __name__ == "__main__":
     main()
