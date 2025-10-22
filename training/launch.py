@@ -20,6 +20,7 @@ def main():
     ap.add_argument("--no-wait", action="store_true")
     args = ap.parse_args()
     r = Runner()
+    r.cleanup()  # free the server's output/log/notebook cache before a new push
     code = Path(args.script).read_text(encoding="utf-8")
     if args.args:
         import shlex

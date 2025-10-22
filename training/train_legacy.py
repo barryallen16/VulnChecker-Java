@@ -81,8 +81,7 @@ def main():
         output_dir=args.out, per_device_train_batch_size=1,
         gradient_accumulation_steps=16, warmup_steps=50, num_train_epochs=1,
         learning_rate=1e-4, fp16=True, bf16=False, logging_steps=10,
-        save_steps=500,
-        save_total_limit=2, optim="adamw_8bit", weight_decay=0.01,
+        save_strategy="no", optim="adamw_8bit", weight_decay=0.01,
         lr_scheduler_type="cosine", seed=1611, dataset_text_field="text",
         report_to="none")
     try:

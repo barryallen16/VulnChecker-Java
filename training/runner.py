@@ -99,7 +99,7 @@ class Runner:
             ).json()
         )
 
-    def wait(self, run_id, poll=60, timeout=12 * 3600):
+    def wait(self, run_id, poll=300, timeout=12 * 3600):
         start = time.time()
         while time.time() - start < timeout:
             st = self.status(run_id)

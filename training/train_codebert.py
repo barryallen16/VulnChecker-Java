@@ -106,7 +106,8 @@ def main():
                                  "p_tp": float(p)}) + "\n")
     auc = roc_auc_score([1 if r["label"] == "TP" else 0 for r in test], p_tp)
     print(f"test rows {len(test)} roc_auc {auc:.4f}")
-    trainer.save_model(args.out)
+    # Predictions are the artifact; the 500 MB checkpoint only fills the
+    # server's output cache when pulled.
 
 
 if __name__ == "__main__":

@@ -122,8 +122,9 @@ def main():
         fp16=not use_bf16,
         bf16=use_bf16,
         logging_steps=10,
-        save_steps=250,
-        save_total_limit=2,
+        # Only the final adapter is published; checkpoints would triple the
+        # output size and the pull cache is what fills the server's disk.
+        save_strategy="no",
         optim="adamw_8bit",
         weight_decay=0.01,
         lr_scheduler_type="cosine",
