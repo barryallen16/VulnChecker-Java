@@ -10,7 +10,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from triage.dataset import build_window, class_decl
+from triage.dataset import build_window
 from triage.prompts import INSTRUCTIONS, SYSTEM
 
 RULES = ["--config", "p/default", "--config", "p/security-audit",
