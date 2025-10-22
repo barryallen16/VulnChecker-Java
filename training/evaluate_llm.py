@@ -95,7 +95,7 @@ def main():
     ap.add_argument("--adapter", default="")
     ap.add_argument("--adapter-url", default="",
                     help="zip URL for the adapter; downloaded and extracted first")
-    ap.add_argument("--data-dir", default="/kaggle/working/triage-data")
+    ap.add_argument("--data-dir", default="/kaggle/tmp/triage-data")
     ap.add_argument("--set", action="append", default=[])
     ap.add_argument("--shots", type=int, default=0)
     ap.add_argument("--limit", type=int, default=0)
@@ -113,7 +113,7 @@ def main():
         import io
         import urllib.request
         import zipfile
-        dest = Path("/kaggle/working/adapter")
+        dest = Path("/kaggle/tmp/adapter")
         dest.mkdir(parents=True, exist_ok=True)
         with urllib.request.urlopen(args.adapter_url, timeout=600) as r:
             with zipfile.ZipFile(io.BytesIO(r.read())) as z:

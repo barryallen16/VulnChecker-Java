@@ -43,7 +43,7 @@ def fetch_data(dest):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--data-dir", default="/kaggle/working/triage-data")
+    ap.add_argument("--data-dir", default="/kaggle/tmp/triage-data")
     ap.add_argument("--adapter-url", required=True)
     ap.add_argument("--model", default="unsloth/qwen2.5-7b-instruct-bnb-4bit")
     ap.add_argument("--max-seq", type=int, default=4096)
@@ -58,7 +58,7 @@ def main():
     from peft import PeftModel
 
     data_dir = fetch_data(args.data_dir)
-    adapter_dir = Path("/kaggle/working/adapter")
+    adapter_dir = Path("/kaggle/tmp/adapter")
     adapter_dir.mkdir(parents=True, exist_ok=True)
     with urllib.request.urlopen(args.adapter_url, timeout=600) as r:
         with zipfile.ZipFile(io.BytesIO(r.read())) as z:

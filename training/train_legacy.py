@@ -38,7 +38,7 @@ def load_jsonl(path):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--data-dir", default="/kaggle/working/legacy")
+    ap.add_argument("--data-dir", default="/kaggle/tmp/legacy")
     ap.add_argument("--out", default="/kaggle/working/legacy-adapter")
     ap.add_argument("--model", default="unsloth/qwen2.5-7b-instruct-bnb-4bit")
     ap.add_argument("--max-seq", type=int, default=2048)

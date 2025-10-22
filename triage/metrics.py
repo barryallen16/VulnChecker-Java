@@ -23,7 +23,7 @@ def precision_at_recall(y, score, target=0.9):
     ok = np.where(recall >= target)[0]
     if not len(ok):
         return 0.0, 0.0
-    i = ok[-1]
+    i = ok[0]  # first threshold that reaches the target keeps the set smallest
     return float(tp[i] / kept[i]), float(recall[i])
 
 

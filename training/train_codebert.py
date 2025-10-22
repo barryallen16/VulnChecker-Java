@@ -45,7 +45,7 @@ class Rows(Dataset):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--data-dir", default="/kaggle/working/triage-data")
+    ap.add_argument("--data-dir", default="/kaggle/tmp/triage-data")
     ap.add_argument("--out", default="/kaggle/working/codebert")
     ap.add_argument("--model", default="microsoft/codebert-base")
     ap.add_argument("--epochs", type=float, default=3)
