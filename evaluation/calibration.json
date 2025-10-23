@@ -1,0 +1,286 @@
+{
+  "eval-clean": {
+    "qlora": [
+      {
+        "bin": "0.0-0.1",
+        "n": 2,
+        "mean_conf": 0.023,
+        "accuracy": 0.5
+      },
+      {
+        "bin": "0.1-0.2",
+        "n": 1,
+        "mean_conf": 0.187,
+        "accuracy": 0.0
+      },
+      {
+        "bin": "0.2-0.3",
+        "n": 4,
+        "mean_conf": 0.269,
+        "accuracy": 0.0
+      },
+      {
+        "bin": "0.3-0.4",
+        "n": 10,
+        "mean_conf": 0.371,
+        "accuracy": 0.4
+      },
+      {
+        "bin": "0.4-0.5",
+        "n": 18,
+        "mean_conf": 0.463,
+        "accuracy": 0.111
+      },
+      {
+        "bin": "0.5-0.6",
+        "n": 20,
+        "mean_conf": 0.551,
+        "accuracy": 0.2
+      },
+      {
+        "bin": "0.6-0.7",
+        "n": 52,
+        "mean_conf": 0.656,
+        "accuracy": 0.673
+      },
+      {
+        "bin": "0.7-0.8",
+        "n": 36,
+        "mean_conf": 0.742,
+        "accuracy": 0.889
+      },
+      {
+        "bin": "0.8-0.9",
+        "n": 9,
+        "mean_conf": 0.82,
+        "accuracy": 1.0
+      }
+    ]
+  },
+  "juliet-frozen": {
+    "qlora": [
+      {
+        "bin": "0.0-0.1",
+        "n": 496,
+        "mean_conf": 0.027,
+        "accuracy": 0.006
+      },
+      {
+        "bin": "0.1-0.2",
+        "n": 5,
+        "mean_conf": 0.121,
+        "accuracy": 0.2
+      },
+      {
+        "bin": "0.2-0.3",
+        "n": 4,
+        "mean_conf": 0.245,
+        "accuracy": 0.25
+      },
+      {
+        "bin": "0.3-0.4",
+        "n": 4,
+        "mean_conf": 0.367,
+        "accuracy": 1.0
+      },
+      {
+        "bin": "0.4-0.5",
+        "n": 3,
+        "mean_conf": 0.445,
+        "accuracy": 1.0
+      },
+      {
+        "bin": "0.5-0.6",
+        "n": 5,
+        "mean_conf": 0.561,
+        "accuracy": 1.0
+      },
+      {
+        "bin": "0.6-0.7",
+        "n": 32,
+        "mean_conf": 0.663,
+        "accuracy": 1.0
+      },
+      {
+        "bin": "0.7-0.8",
+        "n": 105,
+        "mean_conf": 0.757,
+        "accuracy": 1.0
+      },
+      {
+        "bin": "0.8-0.9",
+        "n": 87,
+        "mean_conf": 0.845,
+        "accuracy": 1.0
+      },
+      {
+        "bin": "0.9-1.0",
+        "n": 259,
+        "mean_conf": 0.981,
+        "accuracy": 1.0
+      }
+    ]
+  },
+  "juliet-frozen-v1": {
+    "qlora": [
+      {
+        "bin": "0.0-0.1",
+        "n": 491,
+        "mean_conf": 0.025,
+        "accuracy": 0.004
+      },
+      {
+        "bin": "0.1-0.2",
+        "n": 11,
+        "mean_conf": 0.118,
+        "accuracy": 0.0
+      },
+      {
+        "bin": "0.2-0.3",
+        "n": 2,
+        "mean_conf": 0.235,
+        "accuracy": 1.0
+      },
+      {
+        "bin": "0.3-0.4",
+        "n": 1,
+        "mean_conf": 0.321,
+        "accuracy": 1.0
+      },
+      {
+        "bin": "0.4-0.5",
+        "n": 5,
+        "mean_conf": 0.454,
+        "accuracy": 1.0
+      },
+      {
+        "bin": "0.5-0.6",
+        "n": 7,
+        "mean_conf": 0.549,
+        "accuracy": 1.0
+      },
+      {
+        "bin": "0.6-0.7",
+        "n": 40,
+        "mean_conf": 0.661,
+        "accuracy": 1.0
+      },
+      {
+        "bin": "0.7-0.8",
+        "n": 104,
+        "mean_conf": 0.755,
+        "accuracy": 1.0
+      },
+      {
+        "bin": "0.8-0.9",
+        "n": 77,
+        "mean_conf": 0.847,
+        "accuracy": 1.0
+      },
+      {
+        "bin": "0.9-1.0",
+        "n": 262,
+        "mean_conf": 0.983,
+        "accuracy": 1.0
+      }
+    ]
+  },
+  "test": {
+    "qlora": [
+      {
+        "bin": "0.0-0.1",
+        "n": 474,
+        "mean_conf": 0.004,
+        "accuracy": 0.0
+      },
+      {
+        "bin": "0.1-0.2",
+        "n": 6,
+        "mean_conf": 0.159,
+        "accuracy": 0.0
+      },
+      {
+        "bin": "0.2-0.3",
+        "n": 2,
+        "mean_conf": 0.248,
+        "accuracy": 0.0
+      },
+      {
+        "bin": "0.3-0.4",
+        "n": 2,
+        "mean_conf": 0.328,
+        "accuracy": 0.0
+      },
+      {
+        "bin": "0.4-0.5",
+        "n": 4,
+        "mean_conf": 0.456,
+        "accuracy": 0.0
+      },
+      {
+        "bin": "0.5-0.6",
+        "n": 141,
+        "mean_conf": 0.575,
+        "accuracy": 0.504
+      },
+      {
+        "bin": "0.6-0.7",
+        "n": 902,
+        "mean_conf": 0.64,
+        "accuracy": 0.534
+      },
+      {
+        "bin": "0.7-0.8",
+        "n": 120,
+        "mean_conf": 0.742,
+        "accuracy": 0.742
+      },
+      {
+        "bin": "0.8-0.9",
+        "n": 68,
+        "mean_conf": 0.841,
+        "accuracy": 0.824
+      },
+      {
+        "bin": "0.9-1.0",
+        "n": 530,
+        "mean_conf": 0.996,
+        "accuracy": 0.849
+      }
+    ]
+  },
+  "sample200": {
+    "base3shot": [
+      {
+        "bin": "0.5-0.6",
+        "n": 1,
+        "mean_conf": 0.596,
+        "accuracy": 0.0
+      },
+      {
+        "bin": "0.6-0.7",
+        "n": 13,
+        "mean_conf": 0.663,
+        "accuracy": 0.0
+      },
+      {
+        "bin": "0.7-0.8",
+        "n": 42,
+        "mean_conf": 0.749,
+        "accuracy": 0.333
+      },
+      {
+        "bin": "0.8-0.9",
+        "n": 116,
+        "mean_conf": 0.861,
+        "accuracy": 0.56
+      },
+      {
+        "bin": "0.9-1.0",
+        "n": 28,
+        "mean_conf": 0.914,
+        "accuracy": 0.75
+      }
+    ]
+  }
+}

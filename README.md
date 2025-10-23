@@ -5,7 +5,7 @@ Semgrep finds candidate bugs; a fine-tuned Qwen2.5-Coder-7B decides which alerts
 
 The job is triage, not detection.
 A finder that flags everything has perfect recall and poor precision.
-On the labelled set in this repo, Semgrep alone is right about half the time: 51.5% of its alerts are real bugs.
+On the labelled set in this repo, Semgrep alone is right about half the time: 51.0% of its alerts are real bugs.
 
 Status: working experiment with measured numbers.
 It is not a product, not a SOTA claim, and not a replacement for a human reviewer.
@@ -28,10 +28,48 @@ Every row carries the model's probability, so a reviewer can stop reading when t
 
 ## Results
 
-RESULTS_TBD
+The headline set is 2,249 Semgrep alerts from five bug families the model never trained on.
+Semgrep alone keeps every alert, so its precision is the base rate.
 
-Semgrep alone is the floor: it keeps every alert, so recall is 1.0 and precision equals the base rate.
-The triage model is judged on the same alerts, plus a frozen Juliet set it never trained on.
+| Scorer | n | Precision | Recall | F1 | Precision @ 90% recall | ROC-AUC |
+|---|---|---|---|---|---|---|
+| Semgrep alone | 2,249 | 0.510 | 1.000 | 0.676 | 0.510 | 0.500 |
+| CodeBERT 125M, 3 epochs | 2,249 | 0.681 | 0.999 | 0.810 | 0.718 | 0.865 |
+| Qwen2.5-Coder-7B, 1 epoch QLoRA | 2,249 | 0.652 | 1.000 | 0.789 | 0.675 | 0.825 |
+
+QLoRA beats the untrained model by 15.2 points of precision, but it does not beat the 125M CodeBERT baseline.
+It is 2.9 points behind CodeBERT at the 0.5 threshold and 4.3 points behind at 90% recall.
+The Phase 3 gate asked for a 5-point gain over the untrained model and a 3-point gain over CodeBERT.
+It passed the first half and failed the second, so no extra epochs were run.
+The wider product target - beat Semgrep by 10 points at 90% recall - passes: 0.675 vs 0.510 is +16.5 points.
+The result is published as it stands: a 125M classifier is the better triage model on unseen Java bug families.
+
+On the leak-free Juliet set, the fine-tuned model is strong:
+
+| Scorer | n | Accuracy | Precision | Recall |
+|---|---|---|---|---|
+| Old 7B adapter, original prompt | 1,000 | 0.735 | 1.000 | 0.470 |
+| QLoRA, triage prompt | 1,000 | 0.988 | 1.000 | 0.976 |
+
+The QLoRA row is `juliet-heldout-1000-neutral-v2.csv`, where method names are randomised per row.
+It makes 12 false negatives and no false positives.
+The old adapter misses 265 of the 500 vulnerable cases.
+
+Calibration is imperfect: expected calibration error is 0.085 on the test split.
+Below 0.1 the model is never wrong; in the 0.9-1.0 bin the mean confidence is 0.996 and the accuracy is 0.849.
+Treat the top of the range as "very likely", not "certain".
+`evaluation/calibration.json` has the bins.
+
+Cost on one T4 at $0.40/h: training 4.7 h ($1.86), scoring 4,401 warnings 0.9 h ($0.35).
+Amortised over the 10,345 labelled alerts, that is $0.21 per 1,000 warnings; scoring alone is $0.08.
+Kaggle's free quota covered the runs.
+
+The untrained 7B with a 3-shot prompt collapses at the default threshold: on a balanced 200-alert sample it called every alert a true positive (precision 0.500, recall 1.000).
+Its ranking still carries signal (ROC-AUC 0.700, precision @ 90% recall 0.608), which is why fine-tuning helps, but the prompt alone cannot triage.
+
+All 613 test mistakes are false positives; the model missed no real bug.
+They cluster in LDAP injection (156), path traversal (127), XSS (100), XPath injection (98) and command injection (81).
+[`notes/errors.md`](notes/errors.md) lists the 30 most confident.
 
 ## What the test measures
 
@@ -97,7 +135,7 @@ triagemate path/to/project --json               # machine-readable
 ```
 
 The model scorer needs a CUDA GPU and the Python extras: `uv sync --extra model`.
-The adapter is published as a release asset: ADAPTER_TBD.
+The adapter is published at [barryallen16/all-tmp/qlora-adapter.zip](https://huggingface.co/datasets/barryallen16/all-tmp/resolve/main/qlora-adapter.zip).
 
 ## Reproduce
 
@@ -110,7 +148,7 @@ bash scripts/make_release.sh             # package data and upload to the HF dat
 uv run --env-file .env python training/launch.py training/train_qlora.py \
   --title triage-full --args "--epochs 1" --dest /tmp/adapter
 uv run --env-file .env python training/launch.py training/evaluate_llm.py \
-  --title triage-eval --args "--adapter-url <zip> --set test --set juliet-frozen --no-gen" \
+  --title triage-eval --args "--adapter-url https://huggingface.co/datasets/barryallen16/all-tmp/resolve/main/qlora-adapter.zip --set test --set juliet-frozen --no-gen" \
   --dest /tmp/eval
 uv run python training/report.py --pred model=/tmp/eval/predictions.jsonl
 ```
@@ -125,6 +163,8 @@ The token is read from `KAGGLE_RUNNER_TOKEN`; nothing secret is committed.
 - Semgrep's rule coverage defines the label set. Bug types it cannot express produce no rows.
 - The 328 Juliet files Semgrep could not parse are dropped, not guessed at.
 - No paid frontier-model baseline. There was no API key in the environment, so the comparison uses CodeBERT and the untrained 7B model.
+- `eval-clean-152` was also scored (accuracy 0.711), but its class names still state the verdict (`SecureServlet`, `VulnerableServlet`).
+  It is a continuity check with the old project, not a leak-free test.
 - The model writes a reason and a fix, but the fix is not compiled or tested.
   `triage/verify.py` is the compile-and-rescan checker for a future patch model.
 - The training set is 75% SQL injection, the largest family. The test families are held out, so this imbalance shows up as weaker transfer, not as leakage.
