@@ -36,6 +36,28 @@ QLoRA beats the untrained model by 15.2 points of precision, but it does not bea
 
 CodeBERT is the better pure scorer on unseen Java bug families. QLoRA is kept because it also generates a one-sentence reason and a one-sentence fix — CodeBERT cannot. The choice between them is a product tradeoff: ranking accuracy vs. reviewer-facing explanation.
 
+## Real-world evaluation (vul4j)
+
+All results above are on synthetic benchmarks (OWASP + Juliet). To check whether the approach transfers to real code, I ran Semgrep on 8 vulnerable versions from the [Vul4J dataset](https://github.com/tuhh-softsec/vul4j) — real Java projects with known CVEs (path traversal, XSS, XXE, command injection). Semgrep findings were labeled TP when the rule's CWE matched the entry's known vulnerability, FP otherwise.
+
+| Metric | Value | 95% CI (bootstrap) |
+|---|---|---|
+| Findings | 66 | — |
+| True positives | 11 | — |
+| False positives | 55 | — |
+| Precision | 0.167 | [0.076, 0.258] |
+| Recall | 1.000 | [1.000, 1.000] |
+| F1 | 0.286 | [0.141, 0.410] |
+| ROC-AUC | 0.936 | [0.893, 0.975] |
+| Precision @ 90% recall | 0.769 | [0.389, 0.864] |
+
+Scored with the heuristic scorer (no GPU needed). The labeled findings are in `data/vul4j-eval/labeled.jsonl`; the scan script is `scripts/vul4j_label_score.py`.
+
+Read that as: on real code, the heuristic ranks actual vulnerabilities near the top (ROC-AUC 0.936) and misses none (recall 1.0), but flags 55 false positives alongside 11 real bugs. At 90% recall, about 3 in 4 findings are real. The model scorer should improve precision, but needs a CUDA GPU to run.
+
+Interpret with caution: labeling uses CWE matching as a proxy, so some "TP" findings may not be the exact known vulnerability, and 8 projects is a small sample. The numbers are directional, not definitive.
+
+
 On the leak-free Juliet set, QLoRA reaches 98.8% accuracy:
 
 | Scorer | n | Accuracy | Precision | Recall |
@@ -141,14 +163,20 @@ The training set is 75% SQL injection, the largest family. The test families are
 
 QLoRA trains for one epoch. Two epochs on 7,797 rows at about 46 seconds per optimizer step would pass Kaggle's 12-hour session cap.
 
+Real-world evaluation on vul4j is a small sample (8 projects, 66 findings) and labeling uses CWE matching as a proxy. Results are directional, not definitive.
+
+
 ## Repo map
 
 - `triage/`: dataset builder, prompt format, metrics, CLI, patch verifier.
 - `training/`: QLoRA training, CodeBERT baseline, evaluation, reporting, Kaggle launcher.
-- `scripts/`: benchmark scans, Juliet neutralisation, release packaging.
+- `scripts/`: benchmark scans, Juliet neutralisation, release packaging, vul4j evaluation.
+- `tests/`: pytest suite for metrics, dataset, CLI, and prompt parsing.
+- `docs/run-locally.md`, `Dockerfile`: run without a Kaggle GPU.
+- `data/vul4j-eval/`: vul4j checkouts, Semgrep scans, and labeled findings.
 - `notes/`: data sheet, Phase 0 counts, leak audit, error analysis.
 - `model-evaluation/`: frozen sets and the old evaluation notebooks.
-- `datasets/`, `finetuning/`, `misc/`: the old experiment, kept for provenance. See `notes/legacy-experiment.md`.
+- `legacy_experiment/`: the old experiment, kept for provenance. See `notes/legacy-experiment.md`.
 
 ## Licence
 
