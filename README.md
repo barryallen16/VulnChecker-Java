@@ -32,7 +32,9 @@ The headline set is 2,249 Semgrep alerts from five bug families the model never 
 | CodeBERT 125M, 3 epochs | 2,249 | 0.681 | 0.999 | 0.810 | 0.718 | 0.865 |
 | QLoRA 7B, 1 epoch QLoRA | 2,249 | 0.652 | 1.000 | 0.789 | 0.675 | 0.825 |
 
-QLoRA beats the untrained model by 15.2 points of precision, but it does not beat the 125M CodeBERT baseline. It is 2.9 points behind CodeBERT at the 0.5 threshold and 4.3 points behind at 90% recall. The Phase 3 gate asked for a 5-point gain over the untrained model and a 3-point gain over CodeBERT. It met the first target and missed the second, so no extra epochs were run. The wider product target, beating Semgrep by 10 points at 90% recall, passes: 0.675 vs 0.510 is +16.5 points. A 125M classifier is the better triage model on unseen Java bug families.
+QLoRA beats the untrained model by 15.2 points of precision, but it does not beat the 125M CodeBERT baseline: 2.9 points behind at the 0.5 threshold and 4.3 points behind at 90% recall. The Phase 3 gate asked for a 5-point gain over the untrained model and a 3-point gain over CodeBERT. It met the first target and missed the second, so no extra epochs were run. The wider product target, beating Semgrep by 10 points at 90% recall, passes: 0.675 vs 0.510 is +16.5 points.
+
+CodeBERT is the better pure scorer on unseen Java bug families. QLoRA is kept because it also generates a one-sentence reason and a one-sentence fix — CodeBERT cannot. The choice between them is a product tradeoff: ranking accuracy vs. reviewer-facing explanation.
 
 On the leak-free Juliet set, QLoRA reaches 98.8% accuracy:
 
