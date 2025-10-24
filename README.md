@@ -1,14 +1,15 @@
 # TriageMate
 
 TriageMate sorts Java static-analysis warnings.
-Semgrep finds candidate bugs; a fine-tuned Qwen2.5-Coder-7B decides which alerts are real, gives a one-sentence reason and a one-sentence fix, and puts the real bugs first.
+Semgrep finds candidate bugs.
+A fine-tuned Qwen2.5-Coder-7B decides which alerts are real, gives a one-sentence reason and a one-sentence fix, and puts the real bugs first.
 
 The job is triage, not detection.
 A finder that flags everything has perfect recall and poor precision.
 On the labelled set in this repo, Semgrep alone is right about half the time: 51.0% of its alerts are real bugs.
 
-Status: working experiment with measured numbers.
-It is not a product, not a SOTA claim, and not a replacement for a human reviewer.
+This is a working experiment, not a product.
+A human still reviews every alert.
 
 ## What it looks like
 
@@ -40,11 +41,11 @@ Semgrep alone keeps every alert, so its precision is the base rate.
 QLoRA beats the untrained model by 15.2 points of precision, but it does not beat the 125M CodeBERT baseline.
 It is 2.9 points behind CodeBERT at the 0.5 threshold and 4.3 points behind at 90% recall.
 The Phase 3 gate asked for a 5-point gain over the untrained model and a 3-point gain over CodeBERT.
-It passed the first half and failed the second, so no extra epochs were run.
-The wider product target - beat Semgrep by 10 points at 90% recall - passes: 0.675 vs 0.510 is +16.5 points.
-The result is published as it stands: a 125M classifier is the better triage model on unseen Java bug families.
+It met the first target and missed the second, so no extra epochs were run.
+The wider product target, beating Semgrep by 10 points at 90% recall, passes: 0.675 vs 0.510 is +16.5 points.
+A 125M classifier is the better triage model on unseen Java bug families.
 
-On the leak-free Juliet set, the fine-tuned model is strong:
+On the leak-free Juliet set, QLoRA reaches 98.8% accuracy:
 
 | Scorer | n | Accuracy | Precision | Recall |
 |---|---|---|---|---|
@@ -55,17 +56,17 @@ The QLoRA row is `juliet-heldout-1000-neutral-v2.csv`, where method names are ra
 It makes 12 false negatives and no false positives.
 The old adapter misses 265 of the 500 vulnerable cases.
 
-Calibration is imperfect: expected calibration error is 0.085 on the test split.
-Below 0.1 the model is never wrong; in the 0.9-1.0 bin the mean confidence is 0.996 and the accuracy is 0.849.
-Treat the top of the range as "very likely", not "certain".
+Expected calibration error is 0.085 on the test split.
+Below 0.1 the model is never wrong.
+In the 0.9-1.0 bin it says 99.6% and is right 84.9% of the time.
 `evaluation/calibration.json` has the bins.
 
-Cost on one T4 at $0.40/h: training 4.7 h ($1.86), scoring 4,401 warnings 0.9 h ($0.35).
+On one T4 at $0.40/h, training took 4.7 h ($1.86) and scoring 4,401 warnings took 0.9 h ($0.35).
 Amortised over the 10,345 labelled alerts, that is $0.21 per 1,000 warnings; scoring alone is $0.08.
 Kaggle's free quota covered the runs.
 
-The untrained 7B with a 3-shot prompt collapses at the default threshold: on a balanced 200-alert sample it called every alert a true positive (precision 0.500, recall 1.000).
-Its ranking still carries signal (ROC-AUC 0.700, precision @ 90% recall 0.608), which is why fine-tuning helps, but the prompt alone cannot triage.
+The untrained 7B with a 3-shot prompt called every alert a true positive at the default threshold: on a balanced 200-alert sample, precision was 0.500 and recall 1.000.
+Its ranking still carries signal (ROC-AUC 0.700, precision @ 90% recall 0.608); the threshold is what fails.
 
 All 613 test mistakes are false positives; the model missed no real bug.
 They cluster in LDAP injection (156), path traversal (127), XSS (100), XPath injection (98) and command injection (81).
@@ -73,11 +74,14 @@ They cluster in LDAP injection (156), path traversal (127), XSS (100), XPath inj
 
 ## What the test measures
 
-- **Unseen bug families.** The test split holds out five CWE families: path traversal, OS command injection, XSS, LDAP injection and XPath injection.
+- Unseen bug families.
+  The test split holds out five CWE families: path traversal, OS command injection, XSS, LDAP injection and XPath injection.
   The model never sees those families in training, so the score measures transfer, not memorisation.
-- **A frozen Juliet set.** `model-evaluation/juliet-heldout-1000-neutral-v2.csv` is 1,000 Juliet cases, 500 vulnerable and 500 safe, with method names neutralised so the name cannot leak the label.
+- A frozen Juliet set.
+  `model-evaluation/juliet-heldout-1000-neutral-v2.csv` is 1,000 Juliet cases, 500 vulnerable and 500 safe, with method names neutralised so the name cannot leak the label.
   No training row shares a normalised code window with it.
-- **Calibration.** The confidence is the model's probability at the verdict token, so "80% sure" can be checked against reality.
+- Calibration.
+  The confidence is the model's probability at the verdict token, so "80% sure" can be checked against reality.
   See `evaluation/calibration.json`.
 
 ## Data
@@ -94,9 +98,8 @@ Sources are OWASP Benchmark 1.2 (2,740 servlets, GPLv2) and the NIST Juliet Java
 The full counts, scan settings, split policy and known limits are in [`notes/data-sheet.md`](notes/data-sheet.md).
 Phase 0 counts and the Semgrep-only baseline are in [`notes/phase0.md`](notes/phase0.md).
 
-The WHY and FIX sentences are templated from the Semgrep rule message and a per-CWE mitigation table.
-They are style supervision for the verdict, not expert explanations.
-That is stated in the data sheet too.
+WHY and FIX come from templates built from the Semgrep rule message and a per-CWE mitigation table.
+They teach the output format; they are not expert explanations.
 
 ## The leak we found
 
@@ -108,12 +111,11 @@ The prefix became the label: `funcA` was safe 500 times out of 500, `funcB` vuln
 `juliet-heldout-1000-neutral-v2.csv` flips the mapping per row.
 The prefix now carries nothing: 249 safe and 231 vulnerable rows start with `funcA`.
 
-The old training set had the same disease: 79.6% of its rows had a class name that stated the verdict.
+The old training set had the same problem: 79.6% of its rows had a class name that stated the verdict.
 [`notes/leak-audit.md`](notes/leak-audit.md) has the counts.
 
 The old 7B model, run on `juliet-heldout-1000-neutral-v2.csv` with its original prompt, scores 735/1000 = 73.50%.
 It calls no safe case vulnerable and misses 265 of the 500 vulnerable cases.
-The 97.90% was the method names.
 `training/eval_legacy.py` reproduces it.
 
 ## Install
@@ -162,23 +164,25 @@ The token is read from `KAGGLE_RUNNER_TOKEN`; nothing secret is committed.
 - Both benchmarks are synthetic. Juliet pairs a bad method with a safe one in the same file, and OWASP is a fixed set of servlets.
   A real-repo check (Vul4J) was downloaded but not run, because most of its 129 entries pin old Maven and Java versions.
 - Semgrep's rule coverage defines the label set. Bug types it cannot express produce no rows.
-- The 328 Juliet files Semgrep could not parse are dropped, not guessed at.
+- The 328 Juliet files Semgrep could not parse are dropped; no labels were inferred for them.
 - No paid frontier-model baseline. There was no API key in the environment, so the comparison uses CodeBERT and the untrained 7B model.
 - `eval-clean-152` was also scored (accuracy 0.711), but its class names still state the verdict (`SecureServlet`, `VulnerableServlet`).
   It is a continuity check with the old project, not a leak-free test.
 - The model writes a reason and a fix, but the fix is not compiled or tested.
   `triage/verify.py` is the compile-and-rescan checker for a future patch model.
-- The training set is 75% SQL injection, the largest family. The test families are held out, so this imbalance shows up as weaker transfer, not as leakage.
-- QLoRA trains for one epoch, not two. At about 46 seconds per optimizer step on a T4, two epochs on 7,797 rows would pass Kaggle's 12-hour session cap.
+- The training set is 75% SQL injection, the largest family.
+  The test families are held out, so the imbalance shows up as weaker transfer.
+- QLoRA trains for one epoch.
+  Two epochs on 7,797 rows at about 46 seconds per optimizer step would pass Kaggle's 12-hour session cap.
 
 ## Repo map
 
-- `triage/` - dataset builder, prompt format, metrics, CLI, patch verifier.
-- `training/` - QLoRA training, CodeBERT baseline, evaluation, reporting, Kaggle launcher.
-- `scripts/` - benchmark scans, Juliet neutralisation, release packaging.
-- `notes/` - data sheet, Phase 0 counts, leak audit, error analysis.
-- `model-evaluation/` - frozen sets and the old evaluation notebooks.
-- `datasets/`, `finetuning/`, `misc/` - the old experiment, kept for provenance.
+- `triage/`: dataset builder, prompt format, metrics, CLI, patch verifier.
+- `training/`: QLoRA training, CodeBERT baseline, evaluation, reporting, Kaggle launcher.
+- `scripts/`: benchmark scans, Juliet neutralisation, release packaging.
+- `notes/`: data sheet, Phase 0 counts, leak audit, error analysis.
+- `model-evaluation/`: frozen sets and the old evaluation notebooks.
+- `datasets/`, `finetuning/`, `misc/`: the old experiment, kept for provenance.
   See [`notes/legacy-experiment.md`](notes/legacy-experiment.md).
 
 ## Licence
