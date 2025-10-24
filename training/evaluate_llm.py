@@ -35,7 +35,7 @@ def user_prompt(row):
             f"CODE:\n```java\n{window}\n```\n\n{INSTRUCTIONS}")
 
 
-DATA_URL = ("https://huggingface.co/datasets/barryallen16/all-tmp/resolve/main/"
+DATA_URL = ("https://huggingface.co/datasets/barryallen16/triagemate/resolve/main/"
             "triage-v1.tar.gz")
 
 

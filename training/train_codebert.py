@@ -53,7 +53,7 @@ def main():
     ap.add_argument("--lr", type=float, default=2e-5)
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--data-url", default=(
-        "https://huggingface.co/datasets/barryallen16/all-tmp/resolve/main/"
+        "https://huggingface.co/datasets/barryallen16/triagemate/resolve/main/"
         "triage-v1.tar.gz"))
     args = ap.parse_args()
     ensure_deps()

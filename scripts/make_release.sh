@@ -6,7 +6,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
-REPO="barryallen16/all-tmp"
+REPO="barryallen16/triagemate"
 
 stage="$(mktemp -d)"
 cp data/triage/triage_train.jsonl data/triage/triage_val.jsonl \

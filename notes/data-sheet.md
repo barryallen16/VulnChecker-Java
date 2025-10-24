@@ -8,7 +8,7 @@ Labelled static-analysis alerts for Java, used to train and evaluate a triage mo
 
 - `triage-v1.tar.gz` holds the train, val, test and all splits, the 200-row sample, the frozen eval CSVs and this data sheet.
 - `legacy-v1.tar.gz` holds the cleaned legacy classifier set.
-- Both are public at https://huggingface.co/datasets/barryallen16/all-tmp and the training scripts download from there.
+- Both are public at https://huggingface.co/datasets/barryallen16/triagemate and the training scripts download from there.
 
 ## Sources
 

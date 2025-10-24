@@ -14,7 +14,7 @@ from pathlib import Path
 
 DATA_URL = os.environ.get(
     "LEGACY_DATA_URL",
-    "https://huggingface.co/datasets/barryallen16/all-tmp/resolve/main/"
+    "https://huggingface.co/datasets/barryallen16/triagemate/resolve/main/"
     "legacy-v1.tar.gz",
 )
 

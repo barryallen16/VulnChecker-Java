@@ -15,7 +15,7 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
-DATA_URL = ("https://huggingface.co/datasets/barryallen16/all-tmp/resolve/main/"
+DATA_URL = ("https://huggingface.co/datasets/barryallen16/triagemate/resolve/main/"
             "triage-v1.tar.gz")
 
 SYSTEM = ("You are a code vulnerability classifier. Analyze the provided Java "
