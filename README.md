@@ -136,6 +136,7 @@ triagemate path/to/project --json               # machine-readable
 
 The model scorer needs a CUDA GPU and the Python extras: `uv sync --extra model`.
 The adapter is published at [barryallen16/all-tmp/qlora-adapter.zip](https://huggingface.co/datasets/barryallen16/all-tmp/resolve/main/qlora-adapter.zip).
+Unzip it and pass the `adapter/` directory to `--adapter`.
 
 ## Reproduce
 
