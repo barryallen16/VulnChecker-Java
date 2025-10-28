@@ -38,24 +38,19 @@ CodeBERT is the better pure scorer on unseen Java bug families. QLoRA is kept be
 
 ## Real-world evaluation (vul4j)
 
-All results above are on synthetic benchmarks (OWASP + Juliet). To check whether the approach transfers to real code, I ran Semgrep on 8 vulnerable versions from the [Vul4J dataset](https://github.com/tuhh-softsec/vul4j) — real Java projects with known CVEs (path traversal, XSS, XXE, command injection). Semgrep findings were labeled TP when the rule's CWE matched the entry's known vulnerability, FP otherwise.
+All results above are on synthetic benchmarks (OWASP + Juliet). To check whether the approach transfers to real code, I ran Semgrep on 8 vulnerable versions from the [Vul4J dataset](https://github.com/tuhh-softsec/vul4j) — real Java projects with known CVEs (path traversal, XSS, XXE, command injection). Semgrep findings were labeled TP when the rule's CWE matched the entry's known vulnerability, FP otherwise. Two scorers were compared: the heuristic (Semgrep severity only, no GPU) and the fine-tuned QLoRA 7B model (needs CUDA).
 
-| Metric | Value | 95% CI (bootstrap) |
-|---|---|---|
-| Findings | 66 | — |
-| True positives | 11 | — |
-| False positives | 55 | — |
-| Precision | 0.167 | [0.076, 0.258] |
-| Recall | 1.000 | [1.000, 1.000] |
-| F1 | 0.286 | [0.141, 0.410] |
-| ROC-AUC | 0.936 | [0.893, 0.975] |
-| Precision @ 90% recall | 0.769 | [0.389, 0.864] |
+| Scorer | n | Precision | Recall | F1 | ROC-AUC | Precision @ 90% recall |
+|---|---|---|---|---|---|---|
+| Heuristic | 66 | 0.167 | 1.000 | 0.286 | 0.936 | 0.769 |
+| QLoRA 7B | 66 | 0.087 | 0.364 | 0.140 | 0.257 | 0.167 |
 
-Scored with the heuristic scorer (no GPU needed). The labeled findings are in `data/vul4j-eval/labeled.jsonl`; the scan script is `scripts/vul4j_label_score.py`.
+The labeled findings are in `data/vul4j-eval/labeled.jsonl`; the model results are in `data/vul4j-eval/vul4j_model_results.jsonl`; the scan script is `scripts/vul4j_label_score.py`.
 
-Read that as: on real code, the heuristic ranks actual vulnerabilities near the top (ROC-AUC 0.936) and misses none (recall 1.0), but flags 55 false positives alongside 11 real bugs. At 90% recall, about 3 in 4 findings are real. The model scorer should improve precision, but needs a CUDA GPU to run.
+**The model does not transfer to real code.** QLoRA scores 0.936 ROC-AUC on synthetic test data but only 0.257 on vul4j — worse than random. It catches 4 of 11 real vulnerabilities (recall 0.36) vs the heuristic's 11 of 11. The model overfit to synthetic patterns (OWASP servlets, Juliet `bad*`/`good*` methods) and doesn't recognize real-world Java code patterns. This is an honest negative result: synthetic benchmark numbers do not guarantee real-world performance.
 
 Interpret with caution: labeling uses CWE matching as a proxy, so some "TP" findings may not be the exact known vulnerability, and 8 projects is a small sample. The numbers are directional, not definitive.
+
 
 
 On the leak-free Juliet set, QLoRA reaches 98.8% accuracy:
@@ -147,7 +142,7 @@ Training and evaluation run on a Kaggle T4 through a small launcher (`training/r
 
 ## Limits
 
-Both benchmarks are synthetic. Juliet pairs a bad method with a safe one in the same file, and OWASP is a fixed set of servlets. A real-repo check (Vul4J) was downloaded but not run, because most of its 129 entries pin old Maven and Java versions.
+Both benchmarks are synthetic. Juliet pairs a bad method with a safe one in the same file, and OWASP is a fixed set of servlets. A real-repo check was run on 8 Vul4J entries — see the vul4j results above. Most of the remaining 121 Vul4J entries pin old Maven and Java versions that are hard to build in a modern environment.
 
 Semgrep's rule coverage defines the label set. Bug types it cannot express produce no rows.
 
