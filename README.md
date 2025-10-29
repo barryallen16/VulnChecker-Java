@@ -158,8 +158,6 @@ The training set is 75% SQL injection, the largest family. The test families are
 
 QLoRA trains for one epoch. Two epochs on 7,797 rows at about 46 seconds per optimizer step would pass Kaggle's 12-hour session cap.
 
-Real-world evaluation on vul4j is a small sample (8 projects, 66 findings) and labeling uses CWE matching as a proxy. Results are directional, not definitive.
-
 
 ## Repo map
 
