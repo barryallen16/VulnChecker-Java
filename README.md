@@ -38,20 +38,21 @@ CodeBERT is the better pure scorer on unseen Java bug families. QLoRA is kept be
 
 ## Real-world evaluation (vul4j)
 
-All results above are on synthetic benchmarks (OWASP + Juliet). To check whether the approach transfers to real code, I ran Semgrep on 8 vulnerable versions from the [Vul4J dataset](https://github.com/tuhh-softsec/vul4j) — real Java projects with known CVEs (path traversal, XSS, XXE, command injection). Semgrep findings were labeled TP when the rule's CWE matched the entry's known vulnerability, FP otherwise. Two scorers were compared: the heuristic (Semgrep severity only, no GPU) and the fine-tuned QLoRA 7B model (needs CUDA).
+All results above are on synthetic benchmarks (OWASP + Juliet). To check whether the approach transfers to real code, I ran Semgrep on 8 vulnerable versions from the [Vul4J dataset](https://github.com/tuhh-softsec/vul4j) — real Java projects with known CVEs (path traversal, XSS, XXE, command injection). Semgrep findings were labeled TP when the rule's CWE matched the entry's known vulnerability, FP otherwise. Three scorers were compared: the heuristic (Semgrep severity only, no GPU), CodeBERT base (zero-shot, needs GPU), and the fine-tuned QLoRA 7B model (needs CUDA).
 
 | Scorer | n | Precision | Recall | F1 | ROC-AUC | Precision @ 90% recall |
 |---|---|---|---|---|---|---|
-| Heuristic | 66 | 0.167 | 1.000 | 0.286 | 0.936 | 0.769 |
+| Heuristic | 66 | 0.167 | 1.000 | 0.286 | **0.936** | 0.769 |
+| CodeBERT base | 66 | 0.175 | 1.000 | 0.297 | 0.435 | 0.500 |
 | QLoRA 7B | 66 | 0.087 | 0.364 | 0.140 | 0.257 | 0.167 |
 
-The labeled findings are in `data/vul4j-eval/labeled.jsonl`; the model results are in `data/vul4j-eval/vul4j_model_results.jsonl`; the scan script is `scripts/vul4j_label_score.py`.
+The labeled findings are in `data/vul4j-eval/labeled.jsonl`; the model results are in `data/vul4j-eval/vul4j_model_results.jsonl` and `data/vul4j-eval/vul4j_codebert_results.jsonl`; the scan script is `scripts/vul4j_label_score.py`; the CodeBERT script is `scripts/vul4j_codebert.py`.
 
-**The model does not transfer to real code.** QLoRA scores 0.936 ROC-AUC on synthetic test data but only 0.257 on vul4j — worse than random. It catches 4 of 11 real vulnerabilities (recall 0.36) vs the heuristic's 11 of 11. The model overfit to synthetic patterns (OWASP servlets, Juliet `bad*`/`good*` methods) and doesn't recognize real-world Java code patterns. This is an honest negative result: synthetic benchmark numbers do not guarantee real-world performance.
+**Neither ML model transfers to real code.** CodeBERT base (zero-shot) and QLoRA 7B (fine-tuned on synthetic data) both score worse than random on vul4j (ROC-AUC 0.435 and 0.257 respectively). They catch fewer real vulnerabilities than the heuristic. The heuristic — which just ranks by Semgrep severity — actually ranks real bugs best (ROC-AUC 0.936) and catches all 11, though with 55 false positives.
+
+The models overfit to synthetic patterns (OWASP servlets, Juliet `bad*`/`good*` methods) and don't recognize real-world Java code. This is an honest negative result: synthetic benchmark numbers do not guarantee real-world performance.
 
 Interpret with caution: labeling uses CWE matching as a proxy, so some "TP" findings may not be the exact known vulnerability, and 8 projects is a small sample. The numbers are directional, not definitive.
-
-
 
 On the leak-free Juliet set, QLoRA reaches 98.8% accuracy:
 
@@ -158,13 +159,11 @@ The training set is 75% SQL injection, the largest family. The test families are
 
 QLoRA trains for one epoch. Two epochs on 7,797 rows at about 46 seconds per optimizer step would pass Kaggle's 12-hour session cap.
 
-
 ## Repo map
 
 - `triage/`: dataset builder, prompt format, metrics, CLI, patch verifier.
 - `training/`: QLoRA training, CodeBERT baseline, evaluation, reporting, Kaggle launcher.
-- `scripts/`: benchmark scans, Juliet neutralisation, release packaging, vul4j evaluation.
-- `tests/`: pytest suite for metrics, dataset, CLI, and prompt parsing.
+- `scripts/`: benchmark scans, Juliet neutralisation, release packaging, vul4j evaluation.- `tests/`: pytest suite for metrics, dataset, CLI, and prompt parsing.
 - `docs/run-locally.md`, `Dockerfile`: run without a Kaggle GPU.
 - `data/vul4j-eval/`: vul4j checkouts, Semgrep scans, and labeled findings.
 - `notes/`: data sheet, Phase 0 counts, leak audit, error analysis.
