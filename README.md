@@ -38,21 +38,22 @@ CodeBERT is the better pure scorer on unseen Java bug families. QLoRA is kept be
 
 ## Real-world evaluation (vul4j)
 
-All results above are on synthetic benchmarks (OWASP + Juliet). To check whether the approach transfers to real code, I ran Semgrep on 8 vulnerable versions from the [Vul4J dataset](https://github.com/tuhh-softsec/vul4j) — real Java projects with known CVEs (path traversal, XSS, XXE, command injection). Semgrep findings were labeled TP when the rule's CWE matched the entry's known vulnerability, FP otherwise. Three scorers were compared: the heuristic (Semgrep severity only, no GPU), CodeBERT base (zero-shot, needs GPU), and the fine-tuned QLoRA 7B model (needs CUDA).
+All results above are on synthetic benchmarks (OWASP + Juliet). To check whether the approach transfers to real code, I ran Semgrep on 8 vulnerable versions from the [Vul4J dataset](https://github.com/tuhh-softsec/vul4j) — real Java projects with known CVEs (path traversal, XSS, XXE, command injection). Semgrep findings were labeled TP when the rule's CWE matched the entry's known vulnerability, FP otherwise. Four scorers were compared: the heuristic (Semgrep severity only, no GPU), CodeBERT base (zero-shot, needs GPU), the fine-tuned QLoRA 7B model (needs CUDA), and a QLoRA retrained on real-world Java functions from [megavul](https://huggingface.co/datasets/athrv/megavul-vulnerability-detection-java).
 
 | Scorer | n | Precision | Recall | F1 | ROC-AUC | Precision @ 90% recall |
 |---|---|---|---|---|---|---|
 | Heuristic | 66 | 0.167 | 1.000 | 0.286 | **0.936** | 0.769 |
 | CodeBERT base | 66 | 0.175 | 1.000 | 0.297 | 0.435 | 0.500 |
-| QLoRA 7B | 66 | 0.087 | 0.364 | 0.140 | 0.257 | 0.167 |
+| QLoRA 7B, synthetic training data | 66 | 0.087 | 0.364 | 0.140 | 0.257 | 0.167 |
+| QLoRA 7B, retrained on megavul | 66 | 0.156 | 0.909 | 0.267 | 0.656 | 0.244 |
 
-The labeled findings are in `data/vul4j-eval/labeled.jsonl`; the model results are in `data/vul4j-eval/vul4j_model_results.jsonl` and `data/vul4j-eval/vul4j_codebert_results.jsonl`; the scan script is `scripts/vul4j_label_score.py`; the CodeBERT script is `scripts/vul4j_codebert.py`.
+The labeled findings are in `data/vul4j-eval/labeled.jsonl`; the model results are in `data/vul4j-eval/vul4j_model_results.jsonl`, `data/vul4j-eval/vul4j_codebert_results.jsonl` and `data/vul4j-eval/vul4j_megavul_results.jsonl`; the scan script is `scripts/vul4j_label_score.py`; the CodeBERT script is `scripts/vul4j_codebert.py`; the retrain script is `scripts/vul4j_retrain.py`.
 
-**Neither ML model transfers to real code.** CodeBERT base (zero-shot) and QLoRA 7B (fine-tuned on synthetic data) both score worse than random on vul4j (ROC-AUC 0.435 and 0.257 respectively). They catch fewer real vulnerabilities than the heuristic. The heuristic — which just ranks by Semgrep severity — actually ranks real bugs best (ROC-AUC 0.936) and catches all 11, though with 55 false positives.
+Neither model trained on synthetic data transfers to real code. CodeBERT base (zero-shot) and QLoRA 7B both rank worse than random on vul4j (ROC-AUC 0.435 and 0.257) and catch fewer real vulnerabilities than the heuristic, which uses Semgrep severity alone and ranks real bugs best (ROC-AUC 0.936), catching all 11 with 55 false positives.
 
-The models overfit to synthetic patterns (OWASP servlets, Juliet `bad*`/`good*` methods) and don't recognize real-world Java code. This is an honest negative result: synthetic benchmark numbers do not guarantee real-world performance.
+Retraining on 2,000 real Java functions (1,000 vulnerable, 1,000 not) moves the QLoRA model off the floor: ROC-AUC 0.656 against 0.257, and recall 0.909 against 0.364. Precision stays near the base rate, 0.156 against 0.167, because the model calls 64 of the 66 findings bugs. Its mean probability is 0.66 on the 11 real bugs and 0.64 on the 55 false ones, so the ranking carries little signal where it matters. Synthetic benchmark numbers did not predict real-world performance, and real-world training data improved the ranking without fixing the threshold.
 
-Interpret with caution: labeling uses CWE matching as a proxy, so some "TP" findings may not be the exact known vulnerability, and 8 projects is a small sample. The numbers are directional, not definitive.
+Interpret with caution: labeling uses CWE matching as a proxy, so some "TP" findings may not be the exact known vulnerability, and the 66 findings come from 4 entries out of the 8 versions scanned. The numbers are directional, not definitive.
 
 On the leak-free Juliet set, QLoRA reaches 98.8% accuracy:
 
