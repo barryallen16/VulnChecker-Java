@@ -2,9 +2,9 @@
 
 TriageMate sorts Java static-analysis warnings. Semgrep finds candidate bugs. A fine-tuned Qwen2.5-Coder-7B decides which alerts are real, gives a one-sentence reason and a one-sentence fix, and puts the real bugs first.
 
-The job is triage, not detection. A finder that flags everything has perfect recall and poor precision. On the labelled set in this repo, Semgrep alone is right about half the time: 51.0% of its alerts are real bugs.
+Detection already happened. A finder that flags everything has perfect recall and poor precision, so the useful question is which alerts to trust. On the labelled set in this repo, Semgrep alone is right about half the time: 51.0% of its alerts are real bugs.
 
-This is a working experiment, not a product. A human still reviews every alert.
+This is a working experiment. A human still reviews every alert.
 
 ## What it looks like
 
@@ -30,15 +30,15 @@ The headline set is 2,249 Semgrep alerts from five bug families the model never 
 |---|---|---|---|---|---|---|
 | Semgrep alone | 2,249 | 0.510 | 1.000 | 0.676 | 0.510 | 0.500 |
 | CodeBERT 125M, 3 epochs | 2,249 | 0.681 | 0.999 | 0.810 | 0.718 | 0.865 |
-| QLoRA 7B, 1 epoch QLoRA | 2,249 | 0.652 | 1.000 | 0.789 | 0.675 | 0.825 |
+| QLoRA 7B, 1 epoch | 2,249 | 0.652 | 1.000 | 0.789 | 0.675 | 0.825 |
 
 QLoRA beats the untrained model by 15.2 points of precision, but it does not beat the 125M CodeBERT baseline: 2.9 points behind at the 0.5 threshold and 4.3 points behind at 90% recall. The Phase 3 gate asked for a 5-point gain over the untrained model and a 3-point gain over CodeBERT. It met the first target and missed the second, so no extra epochs were run. The wider product target, beating Semgrep by 10 points at 90% recall, passes: 0.675 vs 0.510 is +16.5 points.
 
-CodeBERT is the better pure scorer on unseen Java bug families. QLoRA is kept because it also generates a one-sentence reason and a one-sentence fix — CodeBERT cannot. The choice between them is a product tradeoff: ranking accuracy vs. reviewer-facing explanation.
+CodeBERT is the better pure scorer on unseen Java bug families. QLoRA is kept because it also writes the reason and fix behind each call, which CodeBERT cannot produce. The choice between them is a product tradeoff: ranking accuracy against reviewer-facing explanation.
 
 ## Real-world evaluation (vul4j)
 
-All results above are on synthetic benchmarks (OWASP + Juliet). To check whether the approach transfers to real code, I ran Semgrep on 8 vulnerable versions from the [Vul4J dataset](https://github.com/tuhh-softsec/vul4j) — real Java projects with known CVEs (path traversal, XSS, XXE, command injection). Semgrep findings were labeled TP when the rule's CWE matched the entry's known vulnerability, FP otherwise. Four scorers were compared: the heuristic (Semgrep severity only, no GPU), CodeBERT base (zero-shot, needs GPU), the fine-tuned QLoRA 7B model (needs CUDA), and a QLoRA retrained on real-world Java functions from [megavul](https://huggingface.co/datasets/athrv/megavul-vulnerability-detection-java).
+All results above are on synthetic benchmarks (OWASP + Juliet). To check whether the approach transfers to real code, I ran Semgrep on 8 vulnerable versions from the [Vul4J dataset](https://github.com/tuhh-softsec/vul4j), real Java projects with known CVEs (path traversal, XSS, XXE, command injection). I compared four scorers: the heuristic (Semgrep severity only, no GPU), CodeBERT base (zero-shot, needs GPU), the fine-tuned QLoRA 7B model (needs CUDA), and a QLoRA retrained on real-world Java functions from [megavul](https://huggingface.co/datasets/athrv/megavul-vulnerability-detection-java).
 
 | Scorer | n | Precision | Recall | F1 | ROC-AUC | Precision @ 90% recall |
 |---|---|---|---|---|---|---|
@@ -47,13 +47,13 @@ All results above are on synthetic benchmarks (OWASP + Juliet). To check whether
 | QLoRA 7B, synthetic training data | 66 | 0.087 | 0.364 | 0.140 | 0.257 | 0.167 |
 | QLoRA 7B, retrained on megavul | 66 | 0.156 | 0.909 | 0.267 | 0.656 | 0.244 |
 
-The labeled findings are in `data/vul4j-eval/labeled.jsonl`; the model results are in `data/vul4j-eval/vul4j_model_results.jsonl`, `data/vul4j-eval/vul4j_codebert_results.jsonl` and `data/vul4j-eval/vul4j_megavul_results.jsonl`; the scan script is `scripts/vul4j_label_score.py`; the CodeBERT script is `scripts/vul4j_codebert.py`; the retrain script is `scripts/vul4j_retrain.py`.
+The labeled findings and per-scorer results are in `data/vul4j-eval/`: `labeled.jsonl`, `vul4j_model_results.jsonl`, `vul4j_codebert_results.jsonl` and `vul4j_megavul_results.jsonl`. The scripts are `scripts/vul4j_label_score.py`, `scripts/vul4j_codebert.py` and `scripts/vul4j_retrain.py`.
 
-Neither model trained on synthetic data transfers to real code. CodeBERT base (zero-shot) and QLoRA 7B both rank worse than random on vul4j (ROC-AUC 0.435 and 0.257) and catch fewer real vulnerabilities than the heuristic, which uses Semgrep severity alone and ranks real bugs best (ROC-AUC 0.936), catching all 11 with 55 false positives.
+Neither model trained on synthetic data transfers to real code. CodeBERT base (zero-shot) and QLoRA 7B both rank worse than random on vul4j (ROC-AUC 0.435 and 0.257) and catch fewer real vulnerabilities than the heuristic. The heuristic uses Semgrep severity alone, ranks real bugs best (ROC-AUC 0.936), and catches all 11 with 55 false positives.
 
-Retraining on 2,000 real Java functions (1,000 vulnerable, 1,000 not) moves the QLoRA model off the floor: ROC-AUC 0.656 against 0.257, and recall 0.909 against 0.364. Precision stays near the base rate, 0.156 against 0.167, because the model calls 64 of the 66 findings bugs. Its mean probability is 0.66 on the 11 real bugs and 0.64 on the 55 false ones, so the ranking carries little signal where it matters. Synthetic benchmark numbers did not predict real-world performance, and real-world training data improved the ranking without fixing the threshold.
+Retraining on 2,000 real Java functions (1,000 vulnerable, 1,000 not) moves the QLoRA model off the floor: ROC-AUC 0.656 against 0.257, and recall 0.909 against 0.364. Precision stays near the base rate, 0.156 against 0.167, because the model calls 64 of the 66 findings bugs. Its mean probability is 0.66 on the 11 real bugs and 0.64 on 55 false ones, so the ranking carries little signal where it matters. Synthetic benchmark numbers did not predict real-world performance, and real-world training data improved the ranking without fixing the threshold.
 
-Interpret with caution: labeling uses CWE matching as a proxy, so some "TP" findings may not be the exact known vulnerability, and the 66 findings come from 4 entries out of the 8 versions scanned. The numbers are directional, not definitive.
+Take these numbers as directional. Labeling uses CWE matching as a proxy, so some "TP" findings may not be the exact known vulnerability, and the 66 findings come from 4 entries out of the 8 versions scanned.
 
 On the leak-free Juliet set, QLoRA reaches 98.8% accuracy:
 
@@ -66,7 +66,7 @@ The QLoRA row is `juliet-heldout-1000-neutral-v2.csv`, where method names are ra
 
 Expected calibration error is 0.085 on the test split. Below 0.1 the model is rarely wrong. In the 0.9-1.0 bin it says 99.6% and is right 84.9% of the time. `evaluation/calibration.json` has the bins.
 
-On one T4 at $0.40/h, training took 4.7 h ($1.86) and scoring 4,401 warnings took 0.9 h ($0.35). Amortised over the 10,345 labelled alerts, that is $0.21 per 1,000 warnings; scoring alone is $0.08. Kaggle's free quota covered the runs.
+Training took 4.7 h and scoring 4,401 warnings took 0.9 h, both on Kaggle's free T4 x2 quota, so they cost nothing.
 
 The untrained 7B with a 3-shot prompt called every alert a true positive at the default threshold: on a balanced 200-alert sample, precision was 0.500 and recall 1.000. Its ranking still carries signal (ROC-AUC 0.700, precision @ 90% recall 0.608); the threshold is what fails.
 
@@ -144,7 +144,7 @@ Training and evaluation run on a Kaggle T4 through a small launcher (`training/r
 
 ## Limits
 
-Both benchmarks are synthetic. Juliet pairs a bad method with a safe one in the same file, and OWASP is a fixed set of servlets. A real-repo check was run on 8 Vul4J entries — see the vul4j results above. Most of the remaining 121 Vul4J entries pin old Maven and Java versions that are hard to build in a modern environment.
+Both benchmarks are synthetic. Juliet pairs a bad method with a safe one in the same file, and OWASP is a fixed set of servlets. A real-repo check covered 8 Vul4J entries; see the vul4j results above. Most of the remaining 121 Vul4J entries pin old Maven and Java versions that are hard to build in a modern environment.
 
 Semgrep's rule coverage defines the label set. Bug types it cannot express produce no rows.
 
@@ -164,7 +164,8 @@ QLoRA trains for one epoch. Two epochs on 7,797 rows at about 46 seconds per opt
 
 - `triage/`: dataset builder, prompt format, metrics, CLI, patch verifier.
 - `training/`: QLoRA training, CodeBERT baseline, evaluation, reporting, Kaggle launcher.
-- `scripts/`: benchmark scans, Juliet neutralisation, release packaging, vul4j evaluation.- `tests/`: pytest suite for metrics, dataset, CLI, and prompt parsing.
+- `scripts/`: benchmark scans, Juliet neutralisation, release packaging, vul4j evaluation.
+- `tests/`: pytest suite for metrics, dataset, CLI, and prompt parsing.
 - `docs/run-locally.md`, `Dockerfile`: run without a Kaggle GPU.
 - `data/vul4j-eval/`: vul4j checkouts, Semgrep scans, and labeled findings.
 - `notes/`: data sheet, Phase 0 counts, leak audit, error analysis.
